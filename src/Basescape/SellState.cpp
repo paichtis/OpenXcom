@@ -91,7 +91,7 @@ void SellState::initCategories() {
 		_cats.push_back("STR_FILTER_RESEARCHABLE");
 	}
 
-	if (_game->getSavedGame()->hasAutosellItems())
+	if (_game->getSavedGame()->hasAutosellItems() && _debriefingState == 0)
 		_cats.push_back("STR_FILTER_AUTOSELL");
 }
 
@@ -668,6 +668,17 @@ void SellState::updateList()
 }
 
 /**
+ * Refreshes the item list, preserving scroll position. (after removing items for instance)
+ */
+
+void SellState::refreshList()
+{
+	size_t scrollPos = _lstItems->getScroll();
+	updateList();
+	_lstItems->scrollTo(scrollPos);
+}
+
+/**
  * Sells the selected items.
  * @param action Pointer to an action.
  */
@@ -966,7 +977,19 @@ void SellState::lstItemsLeftArrowRelease(Action *action)
  */
 void SellState::lstItemsLeftArrowClick(Action *action)
 {
-	if (_game->isRightClick(action, true)) changeByValue(INT_MAX, 1);
+	if (_game->isRightClick(action, true))
+	{
+		if (getRow().qtySrc > getRow().amount)			changeByValue(INT_MAX, 1);
+		else if (																		// if already at max .... 
+					(_cats[_cbxCategory->getSelected()] != "STR_FILTER_AUTOSELL") &&	// ... and not in autosell view 
+					(getRow().type == TRANSFER_ITEM) &&									// ... and is an item
+					!_debriefingState  )												// ... and not in debriefing	
+		{                                                                               //  we then add it to the autosell list
+			RuleItem* rule = (RuleItem*) getRow().rule;
+			_game->getSavedGame()->setAutosell(rule, true);                 // add to autosell
+			_game->getMod()->getSound("GEO.CAT", Mod::UFO_EXPLODE)->play(); // play a sound to indicate we added it to the autosell list ; A visual clue would be better !!
+		}
+	}
 	if (_game->isLeftClick(action, true))
 	{
 		changeByValue(_game->getScrollStep(), 1);
@@ -1077,10 +1100,8 @@ void SellState::lstItemsMousePress(Action *action)
 
 							if (categoryHidden)
 							{
-								// update screen
-								size_t scrollPos = _lstItems->getScroll();
-								updateList();
-								_lstItems->scrollTo(scrollPos);
+								// update screen preserving scroll position
+								refreshList();
 							}
 							else
 							{
@@ -1093,6 +1114,12 @@ void SellState::lstItemsMousePress(Action *action)
 					{
 						_game->pushState(new ItemLocationsState(rule));
 					}
+				}
+				else if (_cats[_cbxCategory->getSelected()] == "STR_FILTER_AUTOSELL") // autosell view and neither ctrl nor shift selected preserving previous behaviour
+				{
+					_game->getSavedGame()->setAutosell(rule, false); // remove from autosell
+					// update screen preserving scroll position
+					refreshList();
 				}
 				else
 				{

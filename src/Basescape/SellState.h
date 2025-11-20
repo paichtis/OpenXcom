@@ -88,6 +88,8 @@ public:
 	void think() override;
 	/// Updates the item list.
 	void updateList();
+	/// Refreshes the list display whitout losing the cursor position.
+	void refreshList();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Cancel button.

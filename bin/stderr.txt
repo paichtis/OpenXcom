@@ -1,0 +1,62 @@
+[20-11-2025_11-07-07]	[DEBUG]	findDataFolders(): SHGetSpecialFolderPathW: C:/Users/nicol/Documents/OpenXcom/
+[20-11-2025_11-07-07]	[DEBUG]	findDataFolders(): GetModuleFileNameW/PathRemoveFileSpecW: C:/dev/OXCE/bin/
+[20-11-2025_11-07-07]	[DEBUG]	findDataFolders(): GetCurrentDirectoryW: C:/dev/OXCE/bin/
+[20-11-2025_11-07-07]	[DEBUG]	findUserFolders(): SHGetSpecialFolderPathW: C:/Users/nicol/Documents/OpenXcom/
+[20-11-2025_11-07-07]	[DEBUG]	findUserFolders(): GetModuleFileNameW/PathRemoveFileSpecW: C:/dev/OXCE/bin/user/
+[20-11-2025_11-07-07]	[DEBUG]	findUserFolders(): GetCurrentDirectoryW: C:/dev/OXCE/bin/user/
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/dev/OXCE/bin/user/)? nope
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/Users/nicol/Documents/OpenXcom/)? yeah
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/Users/nicol/Documents/OpenXcom/UFO)? yeah
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ) -> C:/Users/nicol/Documents/OpenXcom/UFO/*
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'GEODATA'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'GEOGRAPH'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'MAPS'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'patch.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'README.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'ROUTES'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'SOUND'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'TERRAIN'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'UFOGRAPH'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'UFOINTRO'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'UNITS'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): total 11
+[20-11-2025_11-07-07]	[VERB]	fileExists(UFO.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	fileExists(C:/Users/nicol/Documents/OpenXcom/UFO.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	fileExists(C:/dev/OXCE/bin/UFO.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/Users/nicol/Documents/OpenXcom/UFO)? yeah
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ) -> C:/Users/nicol/Documents/OpenXcom/UFO/*
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'GEODATA'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'GEOGRAPH'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'MAPS'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'patch.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'README.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'ROUTES'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'SOUND'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'TERRAIN'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'UFOGRAPH'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'UFOINTRO'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): got 'UNITS'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/UFO, ): total 11
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/Users/nicol/Documents/OpenXcom/TFTD)? yeah
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/TFTD, ) -> C:/Users/nicol/Documents/OpenXcom/TFTD/*
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/TFTD, ): got 'README.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/TFTD, ): total 1
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/dev/OXCE/bin/TFTD)? yeah
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/dev/OXCE/bin/TFTD, ) -> C:/dev/OXCE/bin/TFTD/*
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/dev/OXCE/bin/TFTD, ): got 'README.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/dev/OXCE/bin/TFTD, ): total 1
+[20-11-2025_11-07-07]	[VERB]	fileExists(TFTD.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	fileExists(C:/Users/nicol/Documents/OpenXcom/TFTD.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	fileExists(C:/dev/OXCE/bin/TFTD.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	folderExists(TFTD)? yeah
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(TFTD, ) -> TFTD/*
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(TFTD, ): got 'README.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(TFTD, ): total 1
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/Users/nicol/Documents/OpenXcom/TFTD)? yeah
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/TFTD, ) -> C:/Users/nicol/Documents/OpenXcom/TFTD/*
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/TFTD, ): got 'README.txt'
+[20-11-2025_11-07-07]	[VERB]	getFolderContents(C:/Users/nicol/Documents/OpenXcom/TFTD, ): total 1
+[20-11-2025_11-07-07]	[VERB]	fileExists(TFTD.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	fileExists(C:/Users/nicol/Documents/OpenXcom/TFTD.zip)? nope
+[20-11-2025_11-07-07]	[VERB]	folderExists(C:/Users/nicol/Documents/OpenXcom/)? yeah
+[20-11-2025_11-07-07]	[VERB]	fileExists(C:/Users/nicol/Documents/OpenXcom/options.cfg)? yeah
