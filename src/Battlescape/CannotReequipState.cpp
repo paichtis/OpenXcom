@@ -82,7 +82,7 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat> &missingItems, B
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyCancel);
 
 	if (isRearm)
-	{	// TODO --> rewrite this message as it is too long
+	{
 		std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
 							  .arg(tr(missingItems[0].item))
 							  .arg(missingItems[0].craft)

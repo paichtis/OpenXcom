@@ -2163,14 +2163,6 @@ void GeoscapeState::time1Hour()
 					std::vector<ReequipStat> missingItems;
 					missingItems.push_back(stat);
 					_game->pushState(new CannotReequipState(missingItems, xbase, true));
-					
-					/*
-					std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
-									   .arg(tr(ammo->getType()))
-									   .arg(xcraft->getName(_game->getLanguage()))
-									   .arg(xbase->getName());
-					popup(new CraftErrorState(this, msg));
-					*/
 				}
 			}
 			if (xcraft->getShieldCapacity() > 0 && xcraft->getStatus() != "STR_OUT")
