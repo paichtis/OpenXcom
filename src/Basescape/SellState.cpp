@@ -986,8 +986,8 @@ void SellState::lstItemsLeftArrowClick(Action *action)
 					!_debriefingState  )												// ... and not in debriefing	
 		{                                                                               //  we then add it to the autosell list
 			RuleItem* rule = (RuleItem*) getRow().rule;
-			_game->getSavedGame()->setAutosell(rule, true);                 // add to autosell
-			_game->getMod()->getSound("GEO.CAT", Mod::UFO_EXPLODE)->play(); // play a sound to indicate we added it to the autosell list ; A visual clue would be better !!
+			if (_game->getSavedGame()->setAutosell(rule, true) )                 // add to autosell
+				_game->getMod()->getSound("GEO.CAT", Mod::UFO_EXPLODE)->play(); // play a sound to indicate we added it to the autosell list ; A visual clue would be better !!
 		}
 	}
 	if (_game->isLeftClick(action, true))

@@ -3056,7 +3056,7 @@ std::vector<Soldier*>::iterator SavedGame::killSoldier(bool resetArmor, Soldier 
 }
 
 /**
-*	rturns whether there are any autosell items added
+*	@returns whether there are any autosell items added
 */
 
 bool SavedGame::hasAutosellItems() const {
@@ -3065,16 +3065,17 @@ bool SavedGame::hasAutosellItems() const {
 
 /**
  * enables/disables autosell for an item type
+ * @returns true if an action was really performed
  */
-void SavedGame::setAutosell(const RuleItem *itype, const bool enabled)
+bool SavedGame::setAutosell(const RuleItem *itype, const bool enabled)
 {
 	if (enabled)
 	{
-		_autosales.insert(itype);
+		return _autosales.insert(itype).second;
 	}
 	else
 	{
-		_autosales.erase(itype);
+		return _autosales.erase(itype) > 0;
 	}
 }
 /**

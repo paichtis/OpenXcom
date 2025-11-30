@@ -494,7 +494,7 @@ public:
 	/// has any item set to autosell?
 	bool hasAutosellItems() const;
 	/// enables/disables autosell for an item type
-	void setAutosell(const RuleItem *itype, const bool enabled);
+	bool setAutosell(const RuleItem *itype, const bool enabled);
 	/// get autosell state for an item type
 	bool getAutosell(const RuleItem *) const;
 	/// Removes all soldiers from a given craft.
