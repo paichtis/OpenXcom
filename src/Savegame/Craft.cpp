@@ -1386,6 +1386,30 @@ const RuleItem* Craft::rearm()
 	return ammo;
 }
 
+int Craft::getMissingClipsCount() const {
+	int missingClips = 0;
+	for (auto* cw : _weapons)
+	{
+		if (cw != nullptr) // && cw->isRearming() --> rearming status is ignored here as it has probably being set to false when out of ammo
+		{
+			auto* clip = cw->getRules()->getClipItem();
+			if (clip != nullptr)
+			{
+				int available = _base->getStorageItems()->getItem(clip);
+				int needed = cw->getRules()->getAmmoMax() - cw->getAmmo();
+				int clipsNeeded = (int)ceil((double)needed / clip->getClipSize());
+				int clipsAvailable = (int)floor((double)available / clip->getClipSize());
+				missingClips += std::max(0, clipsNeeded - clipsAvailable);
+			}
+			if( missingClips > 0 ) {
+				break; // no need to count further, we just want to know how many clips are missing for the currently rearming weapon
+			}
+		}
+	}
+	return missingClips;
+}
+
+
 /**
  * Returns the craft's battlescape status.
  * @return Is the craft currently in battle?

@@ -46,7 +46,7 @@ private:
 	TextList *_lstItems;
 public:
 	/// Creates the Cannot Reequip state.
-	CannotReequipState(std::vector<ReequipStat> &missingItems, Base *base);
+	CannotReequipState(std::vector<ReequipStat> &missingItems, Base *base, bool isRearm = false);
 	/// Cleans up the Cannot Reequip state.
 	~CannotReequipState();
 	/// Resets state.

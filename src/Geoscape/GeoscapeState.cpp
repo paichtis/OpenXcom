@@ -131,6 +131,7 @@
 #include "../Mod/RuleInterface.h"
 #include "../Mod/RuleVideo.h"
 #include "../Mod/Texture.h"
+#include "../Battlescape/CannotReequipState.h"		// for craft re-arm
 #include "../fmath.h"
 #include "../fallthrough.h"
 
@@ -2157,11 +2158,19 @@ void GeoscapeState::time1Hour()
 				auto* ammo = xcraft->rearm();
 				if (ammo)
 				{
+					 // -- OXCE: Rearm popup, experiment with CannotReequipState
+					ReequipStat stat = {ammo->getType(), xcraft->getMissingClipsCount(), xcraft->getName(_game->getLanguage()), 0};
+					std::vector<ReequipStat> missingItems;
+					missingItems.push_back(stat);
+					_game->pushState(new CannotReequipState(missingItems, xbase, true));
+					
+					/*
 					std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
 									   .arg(tr(ammo->getType()))
 									   .arg(xcraft->getName(_game->getLanguage()))
 									   .arg(xbase->getName());
 					popup(new CraftErrorState(this, msg));
+					*/
 				}
 			}
 			if (xcraft->getShieldCapacity() > 0 && xcraft->getStatus() != "STR_OUT")

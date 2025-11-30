@@ -38,7 +38,7 @@ namespace OpenXcom
  * @param missingItems List of items still needed for reequip.
  * @param base Relevant xcom base.
  */
-CannotReequipState::CannotReequipState(std::vector<ReequipStat> &missingItems, Base *base) : _missingItems(missingItems), _base(base)
+CannotReequipState::CannotReequipState(std::vector<ReequipStat> &missingItems, Base *base, bool isRearm) : _missingItems(missingItems), _base(base)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -52,22 +52,23 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat> &missingItems, B
 	_lstItems = new TextList(288, 112, 8, 58);
 
 	// Set palette
-	setInterface("cannotReequip");
-
-	add(_window, "window", "cannotReequip");
-	add(_btnManufacture, "button", "cannotReequip");
-	add(_btnPurchase, "button", "cannotReequip");
-	add(_btnOk, "button", "cannotReequip");
-	add(_txtTitle, "heading", "cannotReequip");
-	add(_txtItem, "text", "cannotReequip");
-	add(_txtQuantity, "text", "cannotReequip");
-	add(_txtCraft, "text", "cannotReequip");
-	add(_lstItems, "list", "cannotReequip");
+	const std::string& category = "cannotReequip";
+	setInterface(category);
+	
+	add(_window, "window", category);
+	add(_btnManufacture, "button", category);
+	add(_btnPurchase, "button", category);
+	add(_btnOk, "button", category);
+	add(_txtTitle, "heading", category);
+	add(_txtItem, "text", category);
+	add(_txtQuantity, "text", category);
+	add(_txtCraft, "text", category);
+	add(_lstItems, "list", category);
 
 	centerAllSurfaces();
 
 	// Set up objects
-	setWindowBackground(_window, "cannotReequip");
+	setWindowBackground(_window, category);
 
 	_btnManufacture->setText(tr("STR_MANUFACTURE"));
 	_btnManufacture->onMouseClick((ActionHandler)&CannotReequipState::btnManufactureClick);
@@ -80,9 +81,20 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat> &missingItems, B
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyCancel);
 
-	_txtTitle->setText(tr("STR_NOT_ENOUGH_EQUIPMENT_TO_FULLY_RE_EQUIP_SQUAD"));
+	if (isRearm)
+	{	// TODO --> rewrite this message as it is too long
+		std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
+							  .arg(tr(missingItems[0].item))
+							  .arg(missingItems[0].craft)
+							  .arg(base->getName());
+		_txtTitle->setText(msg);
+	}
+	else
+	{
+		_txtTitle->setText(tr("STR_NOT_ENOUGH_EQUIPMENT_TO_FULLY_RE_EQUIP_SQUAD"));
+		_txtTitle->setBig();
+	}
 	_txtTitle->setAlign(ALIGN_CENTER);
-	_txtTitle->setBig();
 	_txtTitle->setWordWrap(true);
 
 	_txtItem->setText(tr("STR_ITEM"));

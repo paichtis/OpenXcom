@@ -273,6 +273,8 @@ public:
 	std::string refuel();
 	/// Rearms the craft.
 	const RuleItem* rearm();
+	/// Gets how many clips are missing for craft weapons.
+	int getMissingClipsCount() const;
 	/// Sets the craft's battlescape status.
 	void setInBattlescape(bool inbattle);
 	/// Gets if the craft is in battlescape.
