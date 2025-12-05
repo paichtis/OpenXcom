@@ -664,6 +664,15 @@ void SellState::updateList()
 		{
 			_lstItems->setRowColor(_rows.size() - 1, _ammoColor);
 		}
+
+		if (_items[i].type == TRANSFER_ITEM)
+		{
+			RuleItem* rule = (RuleItem*)_items[i].rule;
+			if (_game->getSavedGame()->getAutosell(rule))
+			{
+				_lstItems->setCellColor(_rows.size() - 1, 0, 18); //_lstItems->getTertiaryColor() --> cleaner solution probably
+			}
+		}
 	}
 }
 
@@ -987,7 +996,7 @@ void SellState::lstItemsLeftArrowClick(Action *action)
 		{                                                                               //  we then add it to the autosell list
 			RuleItem* rule = (RuleItem*) getRow().rule;
 			if (_game->getSavedGame()->setAutosell(rule, true) )                 // add to autosell
-				_game->getMod()->getSound("GEO.CAT", Mod::UFO_EXPLODE)->play(); // play a sound to indicate we added it to the autosell list ; A visual clue would be better !!
+				refreshList();                                  // update screen preserving scroll position to show the change
 		}
 	}
 	if (_game->isLeftClick(action, true))
@@ -1115,11 +1124,26 @@ void SellState::lstItemsMousePress(Action *action)
 						_game->pushState(new ItemLocationsState(rule));
 					}
 				}
-				else if (_cats[_cbxCategory->getSelected()] == "STR_FILTER_AUTOSELL") // autosell view and neither ctrl nor shift selected preserving previous behaviour
+				else if (_game->isAltPressed(true))
 				{
-					_game->getSavedGame()->setAutosell(rule, false); // remove from autosell
-					// update screen preserving scroll position
-					refreshList();
+					_game->getSavedGame()->setAutosell(rule, !_game->getSavedGame()->getAutosell(rule)); // toggle autosell
+					refreshList(); // update screen preserving scroll position
+
+					if (0) // what follows is unnecessary now that we change the color of autosell items in the list
+					{
+						if (_cats[_cbxCategory->getSelected()] == "STR_FILTER_AUTOSELL") // autosell view
+						{
+							_game->getSavedGame()->setAutosell(rule, false); // remove from autosell
+							refreshList();                                   // update screen preserving scroll position
+						}
+						else
+						{
+							if (_game->getSavedGame()->setAutosell(rule, true)) // add to autosell
+							{
+								refreshList(); // update screen preserving scroll position
+							}
+						}
+					}
 				}
 				else
 				{
