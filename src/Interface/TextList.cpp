@@ -148,6 +148,17 @@ void TextList::unpress(State *state)
 }
 
 /**
+ * Returns the color of a specific Text object in the list.
+ * @param row Row number.
+ * @param column Column number.
+ * @return Text color.
+ */
+
+Uint8 TextList::getCellColor(size_t row, size_t column) const {
+	return _texts[row][column]->getColor();
+}
+
+/**
  * Changes the color of a specific Text object in the list.
  * @param row Row number.
  * @param column Column number.
@@ -158,6 +169,19 @@ void TextList::setCellColor(size_t row, size_t column, Uint8 color)
 	_texts[row][column]->setColor(color);
 	_redraw = true;
 }
+
+
+/**
+ * Returns the text color of the *first* cell of a row in the list
+ * @param row Row number.
+ * @return Text color.
+ */
+Uint8 TextList::getRowColor(size_t row) const
+{
+	return getCellColor(row, 0);
+}
+
+
 
 /**
  * Changes the text color of a whole row in the list.

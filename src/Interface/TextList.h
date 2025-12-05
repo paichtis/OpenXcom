@@ -80,8 +80,12 @@ public:
 	int getArrowsRightEdge();
 	/// Unpresses the surface.
 	void unpress(State *state) override;
+	/// Gets the text color of a certain cell.
+	Uint8 getCellColor(size_t row, size_t column) const;
 	/// Sets the text color of a certain cell.
 	void setCellColor(size_t row, size_t column, Uint8 color);
+	/// Gets the text color of the first cell of a certain column. (provided for convenience) 
+	Uint8 getRowColor(size_t row) const;
 	/// Sets the text color of a certain row.
 	void setRowColor(size_t row, Uint8 color);
 	/// Gets the text of a certain cell.

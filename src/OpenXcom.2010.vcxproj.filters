@@ -2690,6 +2690,9 @@
     <ClInclude Include="Engine\NullableValue.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\colorTransform.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">

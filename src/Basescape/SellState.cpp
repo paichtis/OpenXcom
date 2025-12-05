@@ -27,6 +27,7 @@
 #include <iomanip>
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
+#include "../Engine/colorTransform.h"
 #include "../Mod/Mod.h"
 #include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
@@ -57,9 +58,20 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Menu/ErrorMessageState.h"
 #include "../Engine/Sound.h"
+#include "../Engine/Palette.h"
 
 namespace OpenXcom
 {
+
+/// Color transform function to mark junk items (autosell).
+SDL_Color markJunk(const SDL_Color& original) {
+	SDL_Color color;
+	color.r = std::min((int)original.r, 255);
+	color.g = std::max(int(original.g - 20), 0);
+	color.b = std::max(int(original.b - 20), 0);
+	color.unused = 0;
+	return color;
+}
 
 /**
  * Initializes all the elements in the Sell/Sack screen.
@@ -106,6 +118,8 @@ void SellState::delayedInit()
 	}
 	_delayedInitDone = true;
 
+	
+
 	bool overfull = _debriefingState == 0 && Options::storageLimitsEnforced && _base->storesOverfull();
 	bool overfullCritical = overfull ? _base->storesOverfullCritical() : false;
 
@@ -147,6 +161,8 @@ void SellState::delayedInit()
 	add(_txtValue, "text", "sellMenu");
 	add(_lstItems, "list", "sellMenu");
 	add(_cbxCategory, "text", "sellMenu");
+
+	ColorTransform<markJunk>::initPalette(_lstItems->getPalette(), 256); // Initialize color transform cache
 
 	touchComponentsAdd("button2", "sellMenu", _window);
 
@@ -656,14 +672,20 @@ void SellState::updateList()
 		int64_t adjustedCost = _items[i].cost;
 		_lstItems->addRow(4, name.c_str(), ssQty.str().c_str(), ssAmount.str().c_str(), Unicode::formatFunding(adjustedCost).c_str());
 		_rows.push_back(i);
+		Uint8 color = _lstItems->getColor(); 
 		if (_items[i].amount > 0)
 		{
-			_lstItems->setRowColor(_rows.size() - 1, _lstItems->getSecondaryColor());
+			color = _lstItems->getSecondaryColor();			
 		}
 		else if (ammo)
 		{
-			_lstItems->setRowColor(_rows.size() - 1, _ammoColor);
+			color  = _ammoColor;
 		}
+		if (_items[i].type == TRANSFER_ITEM && _game->getSavedGame()->getAutosell((RuleItem*)_items[i].rule))
+		{
+			color = ColorTransform<markJunk>::get(color);
+		}
+		_lstItems->setRowColor(_rows.size() - 1, color);
 	}
 }
 
@@ -1115,16 +1137,24 @@ void SellState::lstItemsMousePress(Action *action)
 						_game->pushState(new ItemLocationsState(rule));
 					}
 				}
-				else if (_cats[_cbxCategory->getSelected()] == "STR_FILTER_AUTOSELL") // autosell view and neither ctrl nor shift selected preserving previous behaviour
+				else if (_game->isAltPressed(true))
 				{
-					_game->getSavedGame()->setAutosell(rule, false); // remove from autosell
-					// update screen preserving scroll position
-					refreshList();
+					if (_cats[_cbxCategory->getSelected()] == "STR_FILTER_AUTOSELL") // autosell view 
+					{
+						_game->getSavedGame()->setAutosell(rule, false); // remove from autosell
+						refreshList();                                   // update screen preserving scroll position
+					}
+					else
+					{
+						if (_game->getSavedGame()->setAutosell(rule, true))                                             // add to autosell
+							_lstItems->setRowColor(_sel, ColorTransform<markJunk>::get(_lstItems->getRowColor(_sel))); // apply junk color change
+					}
 				}
 				else
 				{
 					_game->pushState(new ManufactureDependenciesTreeState(rule->getType()));
 				}
+
 			}
 		}
 	}
