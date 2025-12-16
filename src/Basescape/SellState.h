@@ -79,6 +79,28 @@ public:
 	/// Creates the Sell state.
 	SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin origin = OPT_GEOSCAPE);
 	void initCategories();
+
+	/// Gets the (current/next/previous) base index depending on 'direction'.
+	size_t nextBaseIndex(int direction = 0) const;
+	/// Gets the (current/next/previous) base name depending on 'direction'.
+	std::string getBaseName(int direction = 0) const;
+
+	// Navigation buttons TODO : refactor into a separate class
+	TextButton *_prevButton, *_nextButton; 
+	Text *_nextText, *_prevText;
+	bool _moved = false;
+
+	/// Adds navigation buttons if there are multiple bases.
+	void addNavigationButtons();
+
+	/// Moves to the next/previous base.
+	void nextBase(int direction);
+
+	/// Handlers for clicking the Previous Base button.
+	void btnPrevBaseClick(Action* action) { nextBase(-1); }
+	void btnNextBaseClick(Action* action) { nextBase(1); }
+
+	/// Delayed constructor functionality.
 	void delayedInit();
 	/// Cleans up the Sell state.
 	~SellState();

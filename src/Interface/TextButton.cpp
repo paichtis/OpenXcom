@@ -37,13 +37,13 @@ Sound *TextButton::soundPress;
  * @param x X position in pixels.
  * @param y Y position in pixels.
  */
-TextButton::TextButton(int width, int height, int x, int y) : InteractiveSurface(width, height, x, y), _color(0), _group(0), _contrast(false), _geoscapeButton(false), _comboBox(0)
+TextButton::TextButton(int width, int height, int x, int y, bool warp) : InteractiveSurface(width, height, x, y), _color(0), _group(0), _contrast(false), _geoscapeButton(false), _comboBox(0)
 {
 	_text = new Text(width, height, 0, 0);
 	_text->setSmall();
 	_text->setAlign(ALIGN_CENTER);
 	_text->setVerticalAlign(ALIGN_MIDDLE);
-	_text->setWordWrap(true);
+	_text->setWordWrap(warp);
 }
 
 /**
@@ -102,6 +102,13 @@ void TextButton::setTextColor(Uint8 color)
 void TextButton::setBig()
 {
 	_text->setBig();
+	_redraw = true;
+}
+
+/// Sets the text alignment.
+void TextButton::setAlign(TextHAlign align)
+{
+	_text->setAlign(align);
 	_redraw = true;
 }
 

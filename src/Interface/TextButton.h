@@ -27,6 +27,7 @@ class Font;
 class Language;
 class Sound;
 class ComboBox;
+enum TextHAlign;
 
 /**
  * Coloured button with a text label.
@@ -50,7 +51,7 @@ protected:
 public:
 	static Sound *soundPress;
 	/// Creates a new text button with the specified size and position.
-	TextButton(int width, int height, int x = 0, int y = 0);
+	TextButton(int width, int height, int x = 0, int y = 0, bool warp = true);
 	/// Cleans up the text button.
 	~TextButton();
 	/// Sets the text button's color.
@@ -61,6 +62,9 @@ public:
 	void setTextColor(Uint8 color);
 	/// Sets the text size to big.
 	void setBig();
+
+	/// Sets the text alignment.
+	void setAlign(TextHAlign align);
 	/// Sets the text size to small.
 	void setSmall();
 	/// Gets the text button's current font.

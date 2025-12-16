@@ -82,7 +82,6 @@ SellState::SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin
 
 
 void SellState::initCategories() {
-//	_cats.clear();
 	_cats.push_back("STR_ALL_ITEMS");
 	_cats.push_back("STR_FILTER_HIDDEN");
 	if (Options::oxceBaseFilterResearchable)
@@ -93,6 +92,104 @@ void SellState::initCategories() {
 
 	if (_game->getSavedGame()->hasAutosellItems() && _debriefingState == 0)
 		_cats.push_back("STR_FILTER_AUTOSELL");
+}
+
+size_t SellState::nextBaseIndex(int direction) const
+{
+	const std::vector<Base*>* bases = _game->getSavedGame()->getBases();
+	if (bases->size() <= 1)
+	{
+		return 0;
+	}
+	size_t currentIndex = 0;
+	for (; currentIndex < bases->size(); ++currentIndex)
+	{
+		if ((*bases)[currentIndex] == _base)
+			break;
+	}
+	currentIndex = (currentIndex + bases->size() + direction) % bases->size();
+	return currentIndex;
+}
+
+/**
+ * Gets the base name depending on the origin.
+ * @param direction 0 current base,  -1 previous base, 1 next base.
+ * @return The base name.
+ */
+
+std::string SellState::getBaseName(int direction) const
+{
+	if (!direction)
+	{
+		return _base->getName(); // current base, no need to search
+	}
+	else
+	{
+		return (*_game->getSavedGame()->getBases())[nextBaseIndex(direction)]->getName();
+	}	
+}
+
+
+
+/**
+ * Adds navigation buttons if there are multiple bases.
+ */
+
+void SellState::addNavigationButtons() {
+	if (_debriefingState || _game->getSavedGame()->getBases()->size() <= 1)
+		return;
+	//TextButton(int width, int height, int x = 0, int y = 0);
+	_nextButton = new TextButton(10, 8, 310, 0);
+	_nextText = new Text(100, 8, 210, 0);
+	add(_nextButton, "button", "sellMenu");
+	add(_nextText, "text", "sellMenu");
+	_nextButton->setText("->");
+	_nextButton->setAlign(ALIGN_RIGHT);
+	_nextText->setSmall();
+	_nextText->setAlign(ALIGN_RIGHT);
+	_nextText->setText(getBaseName(1));
+	_nextText->setColor(_ammoColor); // using ammo color for lack of better
+	_nextButton->onMouseClick((ActionHandler)&SellState::btnNextBaseClick);
+
+	if (_game->getSavedGame()->getBases()->size() <= 2) // 2 bases only --> no need for previous button
+		return;
+
+	_prevText = new Text(100, 8, 10, 0);
+	_prevButton = new TextButton(10, 8, 0, 0);
+	add(_prevButton, "button", "sellMenu");	
+	add(_prevText, "text", "sellMenu");
+	
+
+	_prevButton->setText("<-");
+	_prevButton->setAlign(ALIGN_LEFT);
+	_prevText->setSmall();
+	_prevText->setAlign(ALIGN_LEFT);
+	_prevText->setText(getBaseName(-1));
+	_prevText->setColor(_ammoColor); // using ammo color for lack of better
+
+	_prevButton->onMouseClick((ActionHandler)&SellState::btnPrevBaseClick);
+}
+
+/**
+ * Moves to the next/previous base.
+ * @param direction 1 next base, -1 previous base.
+ * @return true if base was changed, false otherwise.
+ */
+void SellState::nextBase(int direction)
+{
+	if (_debriefingState || _game->getSavedGame()->getBases()->size() <= 1 || _moved)
+		return;
+	_moved = true;          // prevent multiple clicks
+	_nextButton->setVisible(false);
+	_nextText->setVisible(false);
+	if (_game->getSavedGame()->getBases()->size() > 2)
+	{
+		_prevButton->setVisible(false);
+		_prevText->setVisible(false);
+	}
+
+	btnOkClick(nullptr);	// to sell items in current base before switching
+	_game->pushState(new SellState((*_game->getSavedGame()->getBases())[nextBaseIndex(direction)], _debriefingState, _origin)); // open new sell state for next/previous base
 }
 
 /**
@@ -127,7 +224,7 @@ void SellState::delayedInit()
 	_lstItems = new TextList(287, 120, 8, 54);
 
 	touchComponentsCreate(_txtTitle);
-
+	
 	// Set palette
 	setInterface("sellMenu");
 
@@ -147,6 +244,7 @@ void SellState::delayedInit()
 	add(_txtValue, "text", "sellMenu");
 	add(_lstItems, "list", "sellMenu");
 	add(_cbxCategory, "text", "sellMenu");
+	addNavigationButtons();
 
 	touchComponentsAdd("button2", "sellMenu", _window);
 
