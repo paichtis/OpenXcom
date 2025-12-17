@@ -67,6 +67,9 @@ private:
 	bool _delayedInitDone;
 	TransferSortDirection _previousSort, _currentSort;
 
+	/// Adds a unique category to the category list (_cats).
+	void addUniqueCategory(const std::string& cat);
+
 	/// Gets the category of the current selection.
 	std::string getCategory(int sel) const;
 	/// Determines if the current selection belongs to a given category.
@@ -85,10 +88,13 @@ public:
 	/// Gets the (current/next/previous) base name depending on 'direction'.
 	std::string getBaseName(int direction = 0) const;
 
-	// Navigation buttons TODO : refactor into a separate class
-	TextButton *_prevButton, *_nextButton; 
+	// Base Navigation members and methods to be moved to a separate class in the future (TODO)
+	
+	TextButton *_prevButton, *_nextButton;  // Navigation buttons 
 	Text *_nextText, *_prevText;
+
 	bool _moved = false;
+	inline static int _selectedCategoryBeforeMove = -1; // set before moving to another base, used to restore selection after move
 
 	/// Adds navigation buttons if there are multiple bases.
 	void addNavigationButtons();
@@ -96,7 +102,7 @@ public:
 	/// Moves to the next/previous base.
 	void nextBase(int direction);
 
-	/// Handlers for clicking the Previous Base button.
+	/// Handlers for clicking the Previous Base buttons.
 	void btnPrevBaseClick(Action* action) { nextBase(-1); }
 	void btnNextBaseClick(Action* action) { nextBase(1); }
 

@@ -179,7 +179,9 @@ void SellState::nextBase(int direction)
 {
 	if (_debriefingState || _game->getSavedGame()->getBases()->size() <= 1 || _moved)
 		return;
-	_moved = true;          // prevent multiple clicks
+
+	// first let's prevent multiple clicks
+	_moved = true;          
 	_nextButton->setVisible(false);
 	_nextText->setVisible(false);
 	if (_game->getSavedGame()->getBases()->size() > 2)
@@ -188,7 +190,11 @@ void SellState::nextBase(int direction)
 		_prevText->setVisible(false);
 	}
 
+	// do last actions before switching
+	_selectedCategoryBeforeMove = _cbxCategory->getSelected();
 	btnOkClick(nullptr);	// to sell items in current base before switching
+
+	// now do the actual switch
 	_game->pushState(new SellState((*_game->getSavedGame()->getBases())[nextBaseIndex(direction)], _debriefingState, _origin)); // open new sell state for next/previous base
 }
 
@@ -311,6 +317,7 @@ void SellState::delayedInit()
 		{
 			TransferRow row = { TRANSFER_SOLDIER, soldier, soldier->getName(true), 0, 1, 0, 0, -4, 0, 0, 0 };
 			_items.push_back(row);
+
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
 			{
@@ -459,6 +466,12 @@ void SellState::delayedInit()
 	// OK button is not always visible, so bind it here
 	_cbxCategory->onKeyboardRelease((ActionHandler)&SellState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
 
+	// Select previous category if possible
+	if (_selectedCategoryBeforeMove >= 0 && (size_t)_selectedCategoryBeforeMove < _cats.size())
+	{
+		_cbxCategory->setSelected(_selectedCategoryBeforeMove);
+		_selectedCategoryBeforeMove = -1;
+	}
 	updateList();
 }
 
@@ -498,6 +511,18 @@ void SellState::think()
 
 	_timerInc->think(this, 0);
 	_timerDec->think(this, 0);
+}
+
+/**
+ * Adds a unique category to the category list (_cats).
+ * @param cat Category to add.
+ */
+void SellState::addUniqueCategory(const std::string& cat)
+{
+	if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+	{
+		_cats.push_back(cat);
+	}
 }
 
 /**
