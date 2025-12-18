@@ -1,10 +1,10 @@
 name: Manual
 
 on:
-  workflow_dispatch:  
-#  push:
-#    branches:
-#      - BaseSwitcher
+ workflow_dispatch:  
+ push:
+    branches:
+      - BaseSwitcher
 
 jobs:
   windows:
