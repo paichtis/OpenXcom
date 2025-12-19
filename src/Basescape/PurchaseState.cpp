@@ -1026,7 +1026,7 @@ void PurchaseState::lstItemsMousePress(Action *action)
 		else if (getRow().type == TRANSFER_CRAFT)
 		{
 			RuleCraft *rule = (RuleCraft*)getRow().rule;
-			if (rule != 0)
+			if (rule != 0 && !_game->isCtrlPressed(true) )
 			{
 				itemName = rule->getType();
 			}
