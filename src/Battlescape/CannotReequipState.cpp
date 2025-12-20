@@ -29,6 +29,7 @@
 #include "../Savegame/Base.h"
 #include "../Basescape/ManufactureState.h"
 #include "../Basescape/PurchaseState.h"
+#include "../Basescape/ItemLocationsState.h"
 
 namespace OpenXcom
 {
@@ -107,6 +108,7 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat> &missingItems, B
 	_lstItems->setSelectable(true);
 	_lstItems->setBackground(_window);
 	_lstItems->setMargin(2);
+	_lstItems->onMouseClick((ActionHandler)&CannotReequipState::lstClick);
 }
 
 /**
@@ -161,6 +163,13 @@ void CannotReequipState::btnManufactureClick(Action *)
 void CannotReequipState::btnPurchaseClick(Action *)
 {
 	_game->pushState(new PurchaseState(_base, this));
+}
+
+void CannotReequipState::lstClick(Action* action)
+{
+	std::string item = _missingItems[_lstItems->getSelectedRow()].item;
+	const RuleItem* rule = _game->getMod()->getItem(item);   
+	_game->pushState(new ItemLocationsState(rule));
 }
 
 /**

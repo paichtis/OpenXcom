@@ -57,6 +57,8 @@ public:
 	void btnManufactureClick(Action *action);
 	/// Handler for clicking the Purchase/Hire button.
 	void btnPurchaseClick(Action *action);
+	/// Handler for clicking the items list.
+	void lstClick(Action* action);
 	/// Gets the list of missing items.
 	const std::vector<ReequipStat>& getMissingItems() const;
 	// Decreases the number of missing items by the bought amount.
