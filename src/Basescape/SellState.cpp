@@ -644,6 +644,15 @@ bool SellState::isHidden(int sel) const
 }
 
 /**
+ * Set autosell color
+ */
+
+void SellState::setAutoSellColor(int line)
+{
+	_lstItems->setCellColor(line, 0, 18);
+}
+
+/**
 * Quick search toggle.
 * @param action Pointer to an action.
 */
@@ -807,7 +816,7 @@ void SellState::updateList()
 			RuleItem* rule = (RuleItem*)_items[i].rule;
 			if (_game->getSavedGame()->getAutosell(rule))
 			{
-				_lstItems->setCellColor(_rows.size() - 1, 0, 18); //_lstItems->getTertiaryColor() --> cleaner solution probably
+				setAutoSellColor(_rows.size() - 1); 
 			}
 		}
 	}
@@ -1447,6 +1456,14 @@ void SellState::updateItemStrings()
 			{
 				_lstItems->setRowColor(_sel, _ammoColor);
 			}
+		}
+	}
+	if (getRow().type == TRANSFER_ITEM)
+	{ // preserve autosell color
+		RuleItem* rule = (RuleItem*)getRow().rule;
+		if (_game->getSavedGame()->getAutosell(rule))
+		{
+			setAutoSellColor(_sel); 
 		}
 	}
 

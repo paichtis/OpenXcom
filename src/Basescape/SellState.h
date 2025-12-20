@@ -78,7 +78,11 @@ private:
 	bool isHidden(int sel) const;
 	/// Gets the row of the current selection.
 	TransferRow &getRow() { return _items[_rows[_sel]]; }
-public:
+
+	/// Set autosell color
+	inline void setAutoSellColor(int line);
+	
+  public:
 	/// Creates the Sell state.
 	SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin origin = OPT_GEOSCAPE);
 	void initCategories();
