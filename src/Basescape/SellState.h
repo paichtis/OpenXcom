@@ -95,9 +95,12 @@ public:
 
 	bool _moved = false;
 	inline static int _selectedCategoryBeforeMove = -1; // set before moving to another base, used to restore selection after move
+	inline static std::string _searchTextBeforeMove = ""; // set before moving to another base, used to restore quick search after move
 
 	/// Adds navigation buttons if there are multiple bases.
 	void addNavigationButtons();
+	void doBeforeBaseChange();
+	void doAfterBaseChange();
 
 	/// Moves to the next/previous base.
 	void nextBase(int direction);

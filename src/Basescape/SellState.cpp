@@ -170,6 +170,27 @@ void SellState::addNavigationButtons() {
 	_prevButton->onMouseClick((ActionHandler)&SellState::btnPrevBaseClick);
 }
 
+void SellState::doBeforeBaseChange() {
+	_selectedCategoryBeforeMove = _cbxCategory->getSelected();
+	_searchTextBeforeMove = _btnQuickSearch->getText();
+	btnOkClick(nullptr); // to sell items in current base before switching
+}
+
+void SellState::doAfterBaseChange() {
+	// Base Navigation last steps
+	if (_selectedCategoryBeforeMove >= 0 && (size_t)_selectedCategoryBeforeMove < _cats.size())
+	{
+		_cbxCategory->setSelected(_selectedCategoryBeforeMove);
+		_selectedCategoryBeforeMove = -1;
+	}
+	if (_searchTextBeforeMove != "")
+	{
+		_btnQuickSearch->setText(_searchTextBeforeMove);
+		_btnQuickSearch->setVisible(true);
+		_searchTextBeforeMove = "";
+	}
+}
+
 /**
  * Moves to the next/previous base.
  * @param direction 1 next base, -1 previous base.
@@ -190,9 +211,7 @@ void SellState::nextBase(int direction)
 		_prevText->setVisible(false);
 	}
 
-	// do last actions before switching
-	_selectedCategoryBeforeMove = _cbxCategory->getSelected();
-	btnOkClick(nullptr);	// to sell items in current base before switching
+	doBeforeBaseChange();
 
 	// now do the actual switch
 	_game->pushState(new SellState((*_game->getSavedGame()->getBases())[nextBaseIndex(direction)], _debriefingState, _origin)); // open new sell state for next/previous base
@@ -466,12 +485,7 @@ void SellState::delayedInit()
 	// OK button is not always visible, so bind it here
 	_cbxCategory->onKeyboardRelease((ActionHandler)&SellState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
 
-	// Select previous category if possible
-	if (_selectedCategoryBeforeMove >= 0 && (size_t)_selectedCategoryBeforeMove < _cats.size())
-	{
-		_cbxCategory->setSelected(_selectedCategoryBeforeMove);
-		_selectedCategoryBeforeMove = -1;
-	}
+	doAfterBaseChange();
 	updateList();
 }
 
