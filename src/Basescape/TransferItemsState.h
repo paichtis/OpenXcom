@@ -35,6 +35,7 @@ class Timer;
 class Base;
 class DebriefingState;
 class RuleItem;
+class CannotReequipState;
 
 /**
  * Transfer screen that lets the player pick
@@ -43,8 +44,12 @@ class RuleItem;
 class TransferItemsState : public TouchState
 {
 private:
+	static const int _missingItemsCategory = 1;
+
 	Base *_baseFrom, *_baseTo;
 	DebriefingState *_debriefingState;
+	CannotReequipState* _parent;
+	bool _isReequiping = false;
 	TextButton *_btnOk, *_btnCancel;
 	TextEdit *_btnQuickSearch;
 	Window *_window;
@@ -64,6 +69,10 @@ private:
 	TransferSortDirection _previousSort, _currentSort;
 	bool _errorShown;
 
+	/// Adds the default categories to the category filter.
+	void addFirstCategories();
+
+
 	/// Gets the category of the current selection.
 	std::string getCategory(int sel) const;
 	/// Determines if the current selection belongs to a given category.
@@ -74,7 +83,7 @@ private:
 	double getDistance() const;
 public:
 	/// Creates the Transfer Items state.
-	TransferItemsState(Base *baseFrom, Base *baseTo, DebriefingState *debriefingState);
+  TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingState* debriefingState, CannotReequipState *parent=nullptr);
 	/// Cleans up the Transfer Items state.
 	~TransferItemsState();
 	/// Resets state.

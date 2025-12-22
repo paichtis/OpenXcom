@@ -20,6 +20,10 @@ en-US:
   STR_AVATAR_NAME_6: "#06 Female, Brown hair"
   STR_AVATAR_NAME_7: "#07 Female, Asian"
   STR_AVATAR_NAME_8: "#08 Female, African"
+#TransferBaseState.cpp
+  STR_SELECT_BASE_ORIGIN: "Select Base to bring stuff from:"
+ #CannotReequipState.cpp
+  STR_TRANSFERT_IN: "Transfer In"
 #=================== Battlescape ===================
 #InventoryState.cpp
   STR_PSI_SHORT: "PSI>{ALT}{0}/{1}"

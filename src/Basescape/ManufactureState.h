@@ -27,6 +27,7 @@ class Window;
 class Text;
 class TextList;
 class Base;
+class CannotReequipState;
 
 /**
  * Manufacture screen that lets the player manage
@@ -36,6 +37,7 @@ class ManufactureState : public State
 {
 private:
 	Base *_base;
+	CannotReequipState* _parent;
 	TextButton *_btnNew, *_btnOk;
 	Window *_window;
 	Text *_txtTitle, *_txtAvailable, *_txtAllocated, *_txtSpace, *_txtFunds, *_txtItem, *_txtEngineers, *_txtProduced, *_txtCost, *_txtTimeLeft;
@@ -45,7 +47,7 @@ private:
 	void lstManufactureMousePress(Action *action);
 public:
 	/// Creates the Manufacture state.
-	ManufactureState(Base *base);
+  ManufactureState(Base* base, CannotReequipState* parent = nullptr);
 	/// Cleans up the Manufacture state.
 	~ManufactureState();
 	/// Handler for clicking the OK button.

@@ -33,6 +33,7 @@
 #include "../Mod/RuleRegion.h"
 #include "TransferItemsState.h"
 #include "../Battlescape/DebriefingState.h"
+#include "../Battlescape/CannotReequipState.h"
 
 namespace OpenXcom
 {
@@ -42,7 +43,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-TransferBaseState::TransferBaseState(Base *base, DebriefingState *debriefingState) : _base(base), _debriefingState(debriefingState)
+TransferBaseState::TransferBaseState(Base* base, DebriefingState* debriefingState, CannotReequipState* parent) : _base(base), _debriefingState(debriefingState), _parent(parent)
 {
 	// Create objects
 	_window = new Window(this, 280, 140, 20, 30);
@@ -75,7 +76,7 @@ TransferBaseState::TransferBaseState(Base *base, DebriefingState *debriefingStat
 
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
-	_txtTitle->setText(tr("STR_SELECT_DESTINATION_BASE"));
+	_txtTitle->setText(tr(_parent ? "STR_SELECT_BASE_ORIGIN" : "STR_SELECT_DESTINATION_BASE"));
 
 	_txtFunds->setText(tr("STR_CURRENT_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
 
@@ -96,6 +97,11 @@ TransferBaseState::TransferBaseState(Base *base, DebriefingState *debriefingStat
 	{
 		if (xbase != _base)
 		{
+			if (_parent) // CannotReequipState
+			{ 
+				if (!_parent->checkAvailability(xbase)) // don't show bases that cannot provide the missing items
+					continue;
+			}
 			// Get area
 			std::string area;
 			for (const auto* region : *_game->getSavedGame()->getRegions())
@@ -137,7 +143,12 @@ void TransferBaseState::btnCancelClick(Action *)
  */
 void TransferBaseState::lstBasesClick(Action *)
 {
-	_game->pushState(new TransferItemsState(_base, _bases[_lstBases->getSelectedRow()], _debriefingState));
+	if (_parent)
+	{ // inverted transfer direction for CannotReequipState
+		_game->pushState(new TransferItemsState(_bases[_lstBases->getSelectedRow()] , _base , _debriefingState, _parent));
+	}
+	else
+		_game->pushState(new TransferItemsState(_base, _bases[_lstBases->getSelectedRow()], _debriefingState));
 }
 
 }

@@ -29,6 +29,7 @@ class Window;
 class Text;
 class TextList;
 class Base;
+class RuleItem;
 
 /**
  * Screen shown when there's not enough equipment
@@ -37,14 +38,16 @@ class Base;
 class CannotReequipState : public State
 {
 private:
-	std::vector<ReequipStat> _missingItems;
+	//std::vector<ReequipStat> _missingItems;
+	std::map<RuleItem*, int> _missingItemsMap;
 	Base *_base;
 
-	TextButton *_btnOk, *_btnManufacture, *_btnPurchase;
+	TextButton *_btnOk, *_btnManufacture, *_btnPurchase, *_btnTransfert;
 	Window *_window;
 	Text *_txtTitle, *_txtItem, *_txtQuantity, *_txtCraft;
 	TextList *_lstItems;
-public:
+
+	public:
 	/// Creates the Cannot Reequip state.
 	CannotReequipState(std::vector<ReequipStat> &missingItems, Base *base, bool isRearm = false);
 	/// Cleans up the Cannot Reequip state.
@@ -57,12 +60,22 @@ public:
 	void btnManufactureClick(Action *action);
 	/// Handler for clicking the Purchase/Hire button.
 	void btnPurchaseClick(Action *action);
+
+	/// Handler for clicking the Transfert button.
+	void btnTransfertClick(Action* action);
+
 	/// Handler for clicking the items list.
 	void lstClick(Action* action);
 	/// Gets the list of missing items.
-	const std::vector<ReequipStat>& getMissingItems() const;
+	std::map<RuleItem*, int> *getMissingItems();
 	// Decreases the number of missing items by the bought amount.
-	void decreaseMissingItemCount(const RuleItem* rule, int amount);
+	bool decreaseMissingItemCount(const RuleItem* rule, int amount);
+	bool isMissing(RuleItem* item) const { return _missingItemsMap.find(item) != _missingItemsMap.end(); }
+	std::pair<RuleItem*, int> getMissingItemByIndex(size_t index) const;
+	auto find(RuleItem* rule) const { return _missingItemsMap.find(rule); }
+	auto end() const { return _missingItemsMap.end(); }
+	bool checkAvailability(Base* base) const;
+	bool checkAvailability() const;
 };
 
 }

@@ -85,7 +85,7 @@ private:
   public:
 	/// Creates the Sell state.
 	SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin origin = OPT_GEOSCAPE);
-	void initCategories();
+	void addFirstCategories();
 
 	/// Gets the (current/next/previous) base index depending on 'direction'.
 	size_t nextBaseIndex(int direction = 0) const;
@@ -101,10 +101,13 @@ private:
 	inline static int _selectedCategoryBeforeMove = -1; // set before moving to another base, used to restore selection after move
 	inline static std::string _searchTextBeforeMove = ""; // set before moving to another base, used to restore quick search after move
 
+	virtual bool ignoreBase(Base* base) const	{	return false; }
+	virtual size_t getValidBasesCount() const;
+
 	/// Adds navigation buttons if there are multiple bases.
 	void addNavigationButtons();
-	void doBeforeBaseChange();
-	void doAfterBaseChange();
+	virtual void doBeforeBaseChange();
+	virtual void doAfterBaseChange();
 
 	/// Moves to the next/previous base.
 	void nextBase(int direction);

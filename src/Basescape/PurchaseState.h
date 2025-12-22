@@ -45,8 +45,9 @@ class PurchaseState : public TouchState
 private:
 	Base *_base;
 	CannotReequipState *_parent;
+	bool _isReequiping = false;
 	bool _autoBuyDone;
-	std::map<RuleItem*, int> _missingItemsMap;
+	//std::map<RuleItem*, int> *_missingItemsMap = nullptr;
 
 	TextButton *_btnOk, *_btnCancel;
 	TextEdit *_btnQuickSearch;
@@ -64,6 +65,10 @@ private:
 	std::map<int, int> _iPrisonQty;
 	Uint8 _ammoColor;
 	Timer *_timerInc, *_timerDec;
+
+	/// Adds the default categories to the category filter.
+	void addFirstCategories();
+
 	/// Gets the category of the current selection.
 	std::string getCategory(int sel) const;
 	/// Determines if the current selection belongs to a given category.

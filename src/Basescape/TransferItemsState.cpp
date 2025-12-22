@@ -50,9 +50,29 @@
 #include "TechTreeViewerState.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Battlescape/DebriefingState.h"
+#include "../Battlescape/CannotReequipState.h"
 
 namespace OpenXcom
 {
+
+/**
+ * Adds the default categories to the category filter.
+ */
+
+void TransferItemsState::addFirstCategories()
+{
+	_cats.push_back("STR_ALL_ITEMS");
+	if (_parent)
+	{
+		_cats.push_back("STR_FILTER_MISSING");
+	}
+	_cats.push_back("STR_ITEMS_AT_DESTINATION");
+	if (Options::oxceBaseFilterResearchable)
+	{
+		_cats.push_back("STR_FILTER_RESEARCHED");
+		_cats.push_back("STR_FILTER_RESEARCHABLE");
+	}
+}
 
 /**
  * Initializes all the elements in the Transfer screen.
@@ -60,8 +80,8 @@ namespace OpenXcom
  * @param baseFrom Pointer to the source base.
  * @param baseTo Pointer to the destination base.
  */
-TransferItemsState::TransferItemsState(Base *baseFrom, Base *baseTo, DebriefingState *debriefingState) :
-	_baseFrom(baseFrom), _baseTo(baseTo), _debriefingState(debriefingState),
+TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingState* debriefingState, CannotReequipState* parent) :
+	_baseFrom(baseFrom), _baseTo(baseTo), _debriefingState(debriefingState), _parent(parent),
 	_sel(0), _total(0), _pQty(0), _cQty(0), _aQty(0), _iQty(0.0), _distance(0.0), _ammoColor(0),
 	_previousSort(TransferSortDirection::BY_LIST_ORDER), _currentSort(TransferSortDirection::BY_LIST_ORDER), _errorShown(false)
 {
@@ -139,14 +159,8 @@ TransferItemsState::TransferItemsState(Base *baseFrom, Base *baseTo, DebriefingS
 
 	_distance = getDistance();
 
-	_cats.push_back("STR_ALL_ITEMS");
-	_cats.push_back("STR_ITEMS_AT_DESTINATION");
-	if (Options::oxceBaseFilterResearchable)
-	{
-		_cats.push_back("STR_FILTER_RESEARCHED");
-		_cats.push_back("STR_FILTER_RESEARCHABLE");
-	}
-
+	addFirstCategories();
+	
 	for (auto* soldier : *_baseFrom->getSoldiers())
 	{
 		if (_debriefingState) break;
@@ -244,13 +258,7 @@ TransferItemsState::TransferItemsState(Base *baseFrom, Base *baseTo, DebriefingS
 		if (_game->getMod()->getDisplayCustomCategories() == 1)
 		{
 			_cats.clear();
-			_cats.push_back("STR_ALL_ITEMS");
-			_cats.push_back("STR_ITEMS_AT_DESTINATION");
-			if (Options::oxceBaseFilterResearchable)
-			{
-				_cats.push_back("STR_FILTER_RESEARCHED");
-				_cats.push_back("STR_FILTER_RESEARCHABLE");
-			}
+			addFirstCategories();
 			_vanillaCategories = _cats.size();
 		}
 		for (auto& categoryName : _game->getMod()->getItemCategoriesList())
@@ -267,6 +275,10 @@ TransferItemsState::TransferItemsState(Base *baseFrom, Base *baseTo, DebriefingS
 	}
 
 	_cbxCategory->setOptions(_cats, true);
+	if (_parent )
+	{
+		_cbxCategory->setSelected(_missingItemsCategory); // STR_FILTER_MISSING
+	}
 	_cbxCategory->onChange((ActionHandler)&TransferItemsState::cbxCategoryChange);
 	_cbxCategory->onKeyboardPress((ActionHandler)&TransferItemsState::btnTransferAllClick, Options::keyTransferAll);
 
@@ -417,6 +429,7 @@ void TransferItemsState::updateList()
 	size_t selCategory = _cbxCategory->getSelected();
 	const std::string cat = _cats[selCategory];
 	bool allItems = (cat == "STR_ALL_ITEMS");
+	bool missingItems = (cat == "STR_FILTER_MISSING");
 	bool onlyItemsAtDestination = (cat == "STR_ITEMS_AT_DESTINATION");
 	bool categoryResearched = (cat == "STR_FILTER_RESEARCHED");
 	bool categoryResearchable = (cat == "STR_FILTER_RESEARCHABLE");
@@ -468,7 +481,14 @@ void TransferItemsState::updateList()
 				continue;
 			}
 		}
-		else
+		else if (missingItems && _parent != nullptr)
+		{
+			if (_items[i].type != TRANSFER_ITEM || !_parent->isMissing((RuleItem*)_items[i].rule))
+			{
+				continue;
+			}
+		}
+		else			
 		{
 			if (!specialCategory && cat != getCategory(i))
 			{
@@ -660,6 +680,12 @@ void TransferItemsState::completeTransfer()
 					// remember the decreased amount for next sell/transfer
 					_debriefingState->decreaseRecoveredItemCount(item, transferRow.amount);
 				}
+				if (_parent)
+				{
+					// remember the decreased amount for next buy
+					_parent->decreaseMissingItemCount(item, transferRow.amount); // no worries does nothing if not in the missing items map
+				}
+
 				break;
 			}
 		}

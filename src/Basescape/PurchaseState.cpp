@@ -72,6 +72,20 @@ inline constexpr auto allOf(Functions... funcs)
 }
 
 /**
+ * Adds the default categories to the category filter.
+ */
+void PurchaseState::addFirstCategories()
+{
+	_cats.push_back("STR_ALL_ITEMS");
+	_cats.push_back("STR_FILTER_HIDDEN");
+	_cats.push_back("STR_FILTER_EQUIPPED");
+	if (_isReequiping)
+	{
+		_cats.push_back("STR_FILTER_MISSING");
+	}
+}
+
+/**
  * Initializes all the elements in the Purchase/Hire screen.
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
@@ -79,21 +93,8 @@ inline constexpr auto allOf(Functions... funcs)
 PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(base), _parent(parent), _sel(0), _total(0), _pQty(0), _cQty(0), _iQty(0.0), _ammoColor(0)
 {
 	_autoBuyDone = false;
-	if (_parent)
-	{
-		for (auto& i : _parent->getMissingItems())
-		{
-			if (i.qty > 0)
-			{
-				auto* rule = _game->getMod()->getItem(i.item);
-				if (rule)
-				{
-					_missingItemsMap[rule] = i.qty;
-				}
-			}
-		}
-	}
-
+	_isReequiping = (parent != nullptr);
+		
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnQuickSearch = new TextEdit(this, 48, 9, 10, 13);
@@ -175,13 +176,7 @@ PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(bas
 	_lstItems->onRightArrowClick((ActionHandler)&PurchaseState::lstItemsRightArrowClick);
 	_lstItems->onMousePress((ActionHandler)&PurchaseState::lstItemsMousePress);
 
-	_cats.push_back("STR_ALL_ITEMS");
-	_cats.push_back("STR_FILTER_HIDDEN");
-	_cats.push_back("STR_FILTER_EQUIPPED");
-	if (!_missingItemsMap.empty())
-	{
-		_cats.push_back("STR_FILTER_MISSING");
-	}
+	addFirstCategories();
 
 	RuleBaseFacilityFunctions providedBaseFunc = _base->getProvidedBaseFunc({});
 
@@ -314,13 +309,7 @@ PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(bas
 		if (_game->getMod()->getDisplayCustomCategories() == 1)
 		{
 			_cats.clear();
-			_cats.push_back("STR_ALL_ITEMS");
-			_cats.push_back("STR_FILTER_HIDDEN");
-			_cats.push_back("STR_FILTER_EQUIPPED");
-			if (!_missingItemsMap.empty())
-			{
-				_cats.push_back("STR_FILTER_MISSING");
-			}
+			addFirstCategories();
 			_vanillaCategories = _cats.size();
 		}
 		for (auto& categoryName : _game->getMod()->getItemCategoriesList())
@@ -337,7 +326,7 @@ PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(bas
 	}
 
 	_cbxCategory->setOptions(_cats, true);
-	if (!_missingItemsMap.empty())
+	if (_isReequiping)
 	{
 		_cbxCategory->setSelected(3); // STR_FILTER_MISSING
 	}
@@ -352,7 +341,7 @@ PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(bas
 	updateList();
 
 	_autoBuyDone = true;
-	if (!_missingItemsMap.empty())
+	if (_isReequiping)
 	{
 		_txtPurchases->setText(tr("STR_COST_OF_PURCHASES").arg(Unicode::formatFunding(_total)));
 		std::ostringstream ss5;
@@ -557,6 +546,8 @@ bool PurchaseState::isEquipped(int sel) const
  */
 int PurchaseState::getMissingQty(int sel) const
 {
+	if (_isReequiping)
+		return -1;
 	switch (_items[sel].type)
 	{
 	case TRANSFER_SOLDIER:
@@ -568,8 +559,8 @@ int PurchaseState::getMissingQty(int sel) const
 		RuleItem* rule = (RuleItem*)_items[sel].rule;
 		if (rule)
 		{
-			auto iter = _missingItemsMap.find(rule);
-			if (iter != _missingItemsMap.end())
+			auto iter = _parent->find(rule);
+			if (iter != _parent->end())
 			{
 				if (rule->getMonthlyBuyLimit() > 0)
 				{
@@ -757,7 +748,7 @@ void PurchaseState::updateList()
  */
 void PurchaseState::btnOkClick(Action *)
 {
-	if (!_missingItemsMap.empty())
+	if (_isReequiping)
 	{
 		std::string errorMessage;
 		if (_total > _game->getSavedGame()->getFunds())
@@ -854,10 +845,10 @@ void PurchaseState::btnOkClick(Action *)
 					t = new Transfer(rule->getTransferTime());
 					t->setItems(rule, transferRow.amount);
 					_base->getTransfers()->push_back(t);
-					if (_parent && !_missingItemsMap.empty() && _missingItemsMap.find(rule) != _missingItemsMap.end())
+					if (_parent && _isReequiping)
 					{
 						// remember the decreased amount for next buy
-						_parent->decreaseMissingItemCount(rule, transferRow.amount);
+						_parent->decreaseMissingItemCount(rule, transferRow.amount); // no worries does nothing if not in the missing items map
 					}
 				}
 				break;

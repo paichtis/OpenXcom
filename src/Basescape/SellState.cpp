@@ -81,7 +81,7 @@ SellState::SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin
  */
 
 
-void SellState::initCategories() {
+void SellState::addFirstCategories() {
 	_cats.push_back("STR_ALL_ITEMS");
 	_cats.push_back("STR_FILTER_HIDDEN");
 	if (Options::oxceBaseFilterResearchable)
@@ -107,7 +107,11 @@ size_t SellState::nextBaseIndex(int direction) const
 		if ((*bases)[currentIndex] == _base)
 			break;
 	}
-	currentIndex = (currentIndex + bases->size() + direction) % bases->size();
+
+	do {
+		currentIndex = (currentIndex + bases->size() + direction) % bases->size();
+	} while (ignoreBase((*bases)[currentIndex])); 
+
 	return currentIndex;
 }
 
@@ -129,6 +133,14 @@ std::string SellState::getBaseName(int direction) const
 	}	
 }
 
+/**
+ * Gets the count of valid bases (to be overloaded in derived classes).
+ */
+
+size_t SellState::getValidBasesCount() const
+{
+	return _game->getSavedGame()->getBases()->size();
+}
 
 
 /**
@@ -136,7 +148,7 @@ std::string SellState::getBaseName(int direction) const
  */
 
 void SellState::addNavigationButtons() {
-	if (_debriefingState || _game->getSavedGame()->getBases()->size() <= 1)
+	if (_debriefingState || getValidBasesCount() <= 1)
 		return;
 	//TextButton(int width, int height, int x = 0, int y = 0);
 	_nextButton = new TextButton(10, 8, 310, 0);
@@ -151,7 +163,7 @@ void SellState::addNavigationButtons() {
 	_nextText->setColor(_ammoColor); // using ammo color for lack of better
 	_nextButton->onMouseClick((ActionHandler)&SellState::btnNextBaseClick);
 
-	if (_game->getSavedGame()->getBases()->size() <= 2) // 2 bases only --> no need for previous button
+	if (getValidBasesCount() <= 2) // 2 bases only --> no need for previous button
 		return;
 
 	_prevText = new Text(100, 8, 10, 0);
@@ -198,14 +210,14 @@ void SellState::doAfterBaseChange() {
  */
 void SellState::nextBase(int direction)
 {
-	if (_debriefingState || _game->getSavedGame()->getBases()->size() <= 1 || _moved)
+	if (_debriefingState || getValidBasesCount() <= 1 || _moved)
 		return;
 
 	// first let's prevent multiple clicks
 	_moved = true;          
 	_nextButton->setVisible(false);
 	_nextText->setVisible(false);
-	if (_game->getSavedGame()->getBases()->size() > 2)
+	if (getValidBasesCount() > 2)
 	{
 		_prevButton->setVisible(false);
 		_prevText->setVisible(false);
@@ -327,7 +339,7 @@ void SellState::delayedInit()
 	_lstItems->onRightArrowClick((ActionHandler)&SellState::lstItemsRightArrowClick);
 	_lstItems->onMousePress((ActionHandler)&SellState::lstItemsMousePress);
 
-	initCategories();
+	addFirstCategories();
 
 	for (auto* soldier : *_base->getSoldiers())
 	{
@@ -455,7 +467,7 @@ void SellState::delayedInit()
 		if (_game->getMod()->getDisplayCustomCategories() == 1)
 		{
 			_cats.clear();
-			initCategories();
+			addFirstCategories();
 			_vanillaCategories = _cats.size();
 		}
 		for (auto& categoryName : _game->getMod()->getItemCategoriesList())

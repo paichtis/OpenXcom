@@ -29,6 +29,7 @@ class Text;
 class TextList;
 class Base;
 class DebriefingState;
+class CannotReequipState;
 
 /**
  * Window that lets the player pick the base
@@ -39,6 +40,7 @@ class TransferBaseState : public State
 private:
 	Base *_base;
 	DebriefingState *_debriefingState;
+	CannotReequipState *_parent;
 	TextButton *_btnCancel;
 	Window *_window;
 	Text *_txtTitle, *_txtFunds, *_txtName, *_txtArea;
@@ -46,7 +48,7 @@ private:
 	std::vector<Base*> _bases;
 public:
 	/// Creates the Transfer Base state.
-	TransferBaseState(Base *base, DebriefingState *debriefingState);
+  TransferBaseState(Base* base, DebriefingState *debriefingState = nullptr, CannotReequipState *parent= nullptr);
 	/// Cleans up the Transfer Base state.
 	~TransferBaseState();
 	/// Handler for clicking the Cancel button.
