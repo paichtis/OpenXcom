@@ -32,7 +32,8 @@ enum ManufacturingFilterType
 	MANU_FILTER_DEFAULT_SUPPLIES_OK,
 	MANU_FILTER_DEFAULT_NO_SUPPLIES,
 	MANU_FILTER_FACILITY_REQUIRED,
-	MANU_FILTER_HIDDEN
+	MANU_FILTER_HIDDEN,
+	MANU_FILTER_MISSING // paichtis : added for CannotReequipState. As far as I can see the code is clean and this addition should not cause any side-effect.
 };
 
 class RuleManufactureShortcut;

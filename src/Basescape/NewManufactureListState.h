@@ -32,6 +32,7 @@ class TextEdit;
 class TextList;
 class RuleManufacture;
 class ComboBox;
+class CannotReequipState;
 
 /**
  * Screen which list possible productions.
@@ -40,6 +41,7 @@ class NewManufactureListState : public TouchState
 {
 private:
 	Base *_base;
+	CannotReequipState* _parent;
 	bool _showRequirements, _refreshCategories, _doInit;
 	TextButton *_btnOk;
 	ToggleTextButton *_btnShowOnlyNew;
@@ -58,7 +60,7 @@ private:
 
 public:
 	/// Creates the state.
-	NewManufactureListState(Base *base);
+  NewManufactureListState(Base* base, CannotReequipState *parent = nullptr);
 	/// Initializes state.
 	void init() override;
 	/// Handler for clicking the OK button.

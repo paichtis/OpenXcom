@@ -226,7 +226,7 @@ void CannotReequipState::btnOkClick(Action *)
  */
 void CannotReequipState::btnManufactureClick(Action *)
 {
-	_game->pushState(new ManufactureState(_base));
+	_game->pushState(new ManufactureState(_base, this));
 }
 
 /**
@@ -240,10 +240,6 @@ void CannotReequipState::btnPurchaseClick(Action *)
 
 void CannotReequipState::lstClick(Action* action)
 {
-	/* std::string item = _missingItems[_lstItems->getSelectedRow()].item;
-	const RuleItem* rule = _game->getMod()->getItem(item);   
-	*/
-
 	int row = _lstItems->getSelectedRow();
 	auto it = _missingItemsMap.begin();
 	std::advance(it, row);
@@ -253,7 +249,6 @@ void CannotReequipState::lstClick(Action* action)
 void CannotReequipState::btnTransfertClick(Action* action)
 {
 	_game->pushState(new TransferBaseState(_base, nullptr, this));
-	//TransferItemsState(Base * baseFrom, Base * baseTo, DebriefingState * debriefingState)
 }
 
 /**

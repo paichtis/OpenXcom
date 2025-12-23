@@ -40,6 +40,7 @@
 #include "ManufactureStartState.h"
 #include "TechTreeViewerState.h"
 #include "../Ufopaedia/Ufopaedia.h"
+#include "../Battlescape/CannotReequipState.h"
 
 namespace OpenXcom
 {
@@ -49,7 +50,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-NewManufactureListState::NewManufactureListState(Base *base) : _base(base), _showRequirements(false), _refreshCategories(true), _doInit(true), _lstScroll(0)
+NewManufactureListState::NewManufactureListState(Base* base, CannotReequipState* parent) : _base(base), _parent(parent), _showRequirements(false), _refreshCategories(true), _doInit(true), _lstScroll(0)
 {
 	_screen = false;
 
@@ -124,8 +125,16 @@ NewManufactureListState::NewManufactureListState(Base *base) : _base(base), _sho
 	filterOptions.push_back("STR_FILTER_DEFAULT_NO_SUPPLIES");
 	filterOptions.push_back("STR_FILTER_FACILITY_REQUIRED");
 	filterOptions.push_back("STR_FILTER_HIDDEN");
+	if (_parent != nullptr)
+	{
+		filterOptions.push_back("STR_FILTER_MISSING");
+	}
 	_cbxFilter->setOptions(filterOptions, true);
-	if (Options::oxceManufactureFilterSuppliesOK)
+	if (_parent != nullptr)
+	{
+		_cbxFilter->setSelected(MANU_FILTER_MISSING);
+	}
+	else if (Options::oxceManufactureFilterSuppliesOK)
 	{
 		_cbxFilter->setSelected(MANU_FILTER_DEFAULT_SUPPLIES_OK);
 	}
@@ -401,6 +410,19 @@ void NewManufactureListState::fillProductionList(bool refreshCategories)
 	{
 		if ((manuf->getCategory() == _catStrings[_cbxCategory->getSelected()]) || (_catStrings[_cbxCategory->getSelected()] == "STR_ALL_ITEMS"))
 		{
+			if (basicFilter == MANU_FILTER_MISSING && _parent != nullptr )
+			{
+				bool isMissing = false;
+				for (auto& iter : manuf->getProducedItems())
+				{
+					if (_parent->isMissing(const_cast<RuleItem*>(iter.first)))
+					{
+						isMissing = true;
+						break;
+					}
+				}
+				if (!isMissing)	continue;
+			}
 			// filter
 			bool isHidden = _game->getSavedGame()->getManufactureRuleStatus(manuf->getName()) == RuleManufacture::MANU_STATUS_HIDDEN;
 			if (basicFilter == MANU_FILTER_DEFAULT && isHidden)
