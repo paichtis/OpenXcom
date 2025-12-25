@@ -70,6 +70,7 @@ private:
 	std::map<RuleItem*, int> *getMissingItems();
 	// Decreases the number of missing items by the bought amount.
 	bool decreaseMissingItemCount(const RuleItem* rule, int amount);
+	// Checks if an item is missing.
 	bool isMissing(RuleItem* item) const { return _missingItemsMap.find(item) != _missingItemsMap.end(); }
 	std::pair<RuleItem*, int> getMissingItemByIndex(size_t index) const;
 	auto find(RuleItem* rule) const { return _missingItemsMap.find(rule); }

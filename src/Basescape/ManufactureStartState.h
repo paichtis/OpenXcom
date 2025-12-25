@@ -48,6 +48,8 @@ public:
 	void btnCancelClick(Action *action);
 	/// Handler for the start button.
 	void btnStartClick(Action *action);
+
+	void lstRequiredItemsMousePress(Action* action);
 };
 
 }

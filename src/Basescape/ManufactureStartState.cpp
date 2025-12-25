@@ -35,6 +35,9 @@
 #include "ManufactureInfoState.h"
 #include "../Savegame/SavedGame.h"
 #include "../Mod/RuleInterface.h"
+#include "ManufactureDependenciesTreeState.h"
+#include "ItemLocationsState.h"
+#include "../Ufopaedia/Ufopaedia.h"
 
 namespace OpenXcom
 {
@@ -45,7 +48,7 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param item The RuleManufacture to produce.
  */
-ManufactureStartState::ManufactureStartState(Base *base, RuleManufacture *item) :  _base(base), _item(item)
+ManufactureStartState::ManufactureStartState(Base* base, RuleManufacture* item) : _base(base), _item(item)
 {
 	_screen = false;
 
@@ -102,8 +105,8 @@ ManufactureStartState::ManufactureStartState(Base *base, RuleManufacture *item) 
 
 	bool productionPossible = _item->haveEnoughMoneyForOneMoreUnit(_game->getSavedGame()->getFunds());
 	// check available workspace later
-	//int availableWorkSpace = _base->getFreeWorkshops();
-	//productionPossible &= (availableWorkSpace > 0);
+	// int availableWorkSpace = _base->getFreeWorkshops();
+	// productionPossible &= (availableWorkSpace > 0);
 
 	_txtRequiredItemsTitle->setText(tr("STR_SPECIAL_MATERIALS_REQUIRED"));
 	_txtRequiredItemsTitle->setAlign(ALIGN_CENTER);
@@ -174,6 +177,7 @@ ManufactureStartState::ManufactureStartState(Base *base, RuleManufacture *item) 
 		row++;
 	}
 	bool hasVanillaOutput = false;
+	// TODO(paichtis) : add an option to show complete output even for vanilla productions
 	if (_item->getProducedItems().size() == 1)
 	{
 		const RuleItem* match = _game->getMod()->getItem(_item->getName(), false);
@@ -196,9 +200,14 @@ ManufactureStartState::ManufactureStartState(Base *base, RuleManufacture *item) 
 		// produced items
 		for (auto& iter : _item->getProducedItems())
 		{
-			std::ostringstream s1;
+			std::ostringstream s1, s2;
 			s1 << Unicode::TOK_COLOR_FLIP << iter.second;
-			_lstRequiredItems->addRow(2, tr(iter.first->getType()).c_str(), s1.str().c_str());
+			//_lstRequiredItems->addRow(2, tr(iter.first->getType()).c_str(), s1.str().c_str());
+
+			s2 << Unicode::TOK_COLOR_FLIP << _base->getStorageItems()->getItem(iter.first);
+
+			_lstRequiredItems->addRow(3, tr(iter.first->getType()).c_str(), s1.str().c_str(), s2.str().c_str());
+			_lstRequiredItems->setCellColor(row, 2, _lstRequiredItems->getColor());
 			row++;
 		}
 	}
@@ -208,6 +217,8 @@ ManufactureStartState::ManufactureStartState(Base *base, RuleManufacture *item) 
 	_txtUnitRequiredColumn->setVisible(hasRequirements);
 	_txtUnitAvailableColumn->setVisible(hasRequirements);
 	_lstRequiredItems->setVisible(row);
+	_lstRequiredItems->setSelectable(hasRequirements);
+	_lstRequiredItems->onMousePress((ActionHandler)&ManufactureStartState::lstRequiredItemsMousePress);
 
 	_btnStart->setText(tr("STR_START_PRODUCTION"));
 	_btnStart->onMouseClick((ActionHandler)&ManufactureStartState::btnStartClick);
@@ -228,7 +239,7 @@ ManufactureStartState::ManufactureStartState(Base *base, RuleManufacture *item) 
  * Returns to previous screen.
  * @param action A pointer to an Action.
  */
-void ManufactureStartState::btnCancelClick(Action *)
+void ManufactureStartState::btnCancelClick(Action*)
 {
 	_game->popState();
 }
@@ -237,20 +248,57 @@ void ManufactureStartState::btnCancelClick(Action *)
  * Go to the Production settings screen.
  * @param action A pointer to an Action.
  */
-void ManufactureStartState::btnStartClick(Action *)
+void ManufactureStartState::btnStartClick(Action*)
 {
 	if (_item->getProducedCraft() && _base->getAvailableHangars() - _base->getUsedHangars() <= 0)
 	{
 		_game->pushState(new ErrorMessageState(tr("STR_NO_FREE_HANGARS_FOR_CRAFT_PRODUCTION"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK17.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 	}
-	//else if (_item->getRequiredSpace() > _base->getFreeWorkshops())
+	// else if (_item->getRequiredSpace() > _base->getFreeWorkshops())
 	//{
 	//	_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_WORK_SPACE"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK17.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
-	//}
+	// }
 	else
 	{
 		_game->pushState(new ManufactureInfoState(_base, _item));
 	}
 }
 
+void ManufactureStartState::lstRequiredItemsMousePress(Action* action)
+{
+	size_t sel = _lstRequiredItems->getSelectedRow();
+	if (sel >= _item->getRequiredItems().size())
+	{ // clicked on separator or produced items --> out of scope here
+		return;
+	}
+
+	const RuleItem* item = nullptr;
+	size_t index = 0;
+	for (auto& iter : _item->getRequiredItems())
+	{
+		if (index == sel)
+		{
+			item = iter.first;
+			break;
+		}
+		++index;
+	}
+	if (!item)
+	{
+		return;
+	}
+	if (_game->isRightClick(action, true))
+	{
+		_game->pushState(new ManufactureDependenciesTreeState(item->getType()));
+	}
+	else if (_game->isMiddleClick(action, true))
+	{
+		std::string articleId = item->getUfopediaType();
+		Ufopaedia::openArticle(_game, articleId);
+	}
+	else // left click
+	{
+		_game->pushState(new ItemLocationsState(item));
+	}
 }
+} // namespace OpenXcom
