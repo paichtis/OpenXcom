@@ -903,9 +903,9 @@ void DebriefingState::btnOkClick(Action *)
 			{
 				_game->pushState(new PromotionsState);
 			}
-			if (!_missingItems.empty())
+			if (_cannotReequipState && !_cannotReequipState->deleteIfEmpty())
 			{
-				_game->pushState(new CannotReequipState(_missingItems, _base));
+				_game->pushState(_cannotReequipState);
 			}
 			// remove the wounded soldiers (and their items too if needed); this was moved here from BattleUnit::postMissionProcedures()
 			for (auto* soldier : *_base->getSoldiers())
@@ -2206,6 +2206,7 @@ void DebriefingState::prepareDebriefing()
 void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCanBeDestroyed)
 {
 	auto craftItemsCopy = *craft->getItems()->getContents();
+	 _cannotReequipState = CannotReequipState::create(base, craft->getName(_game->getLanguage()));
 	for (const auto& pair : craftItemsCopy)
 	{
 		int qty = base->getStorageItems()->getItem(pair.first);
@@ -2218,8 +2219,9 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 			int missing = pair.second - qty;
 			base->getStorageItems()->removeItem(pair.first, qty);
 			craft->getItems()->removeItem(pair.first, missing);
-			ReequipStat stat = {pair.first->getType(), missing, craft->getName(_game->getLanguage()), 0};
-			_missingItems.push_back(stat);
+//			ReequipStat stat = {pair.first->getType(), missing, craft->getName(_game->getLanguage()), 0};
+//			_missingItems.push_back(stat);
+			_cannotReequipState->addMissingItem(pair.first, missing);
 		}
 	}
 
@@ -2251,8 +2253,9 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 		if (qty < pair.second)
 		{ // missing tanks
 			int missing = pair.second - qty;
-			ReequipStat stat = {pair.first->getType(), missing, craft->getName(_game->getLanguage()), 0};
-			_missingItems.push_back(stat);
+//			ReequipStat stat = {pair.first->getType(), missing, craft->getName(_game->getLanguage()), 0};
+//			_missingItems.push_back(stat);
+			_cannotReequipState->addMissingItem(pair.first, missing);
 		}
 		if (tankRule->getVehicleClipAmmo() == nullptr)
 		{ // so this tank does NOT require ammo
@@ -2271,8 +2274,9 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 			if (baqty < pair.second * ammoPerVehicle)
 			{ // missing ammo
 				int missing = (pair.second * ammoPerVehicle) - baqty;
-				ReequipStat stat = {ammo->getType(), missing, craft->getName(_game->getLanguage()), 0};
-				_missingItems.push_back(stat);
+//				ReequipStat stat = {ammo->getType(), missing, craft->getName(_game->getLanguage()), 0};
+//				_missingItems.push_back(stat);
+				_cannotReequipState->addMissingItem(ammo, missing);
 			}
 			canBeAdded = std::min(canBeAdded, baqty / ammoPerVehicle);
 			if (canBeAdded > 0)

@@ -546,7 +546,7 @@ bool PurchaseState::isEquipped(int sel) const
  */
 int PurchaseState::getMissingQty(int sel) const
 {
-	if (_isReequiping)
+	if (!_isReequiping)
 		return -1;
 	switch (_items[sel].type)
 	{
@@ -556,7 +556,7 @@ int PurchaseState::getMissingQty(int sel) const
 	case TRANSFER_CRAFT:
 		return -1;
 	case TRANSFER_ITEM:
-		RuleItem* rule = (RuleItem*)_items[sel].rule;
+		const RuleItem* rule = (const RuleItem*)_items[sel].rule;
 		if (rule)
 		{
 			auto iter = _parent->find(rule);

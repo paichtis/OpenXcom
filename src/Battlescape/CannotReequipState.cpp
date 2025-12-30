@@ -90,9 +90,22 @@ bool CannotReequipState::checkAvailability() const
  * @param missingItems List of items still needed for reequip.
  * @param base Relevant xcom base.
  */
-CannotReequipState::CannotReequipState(std::vector<ReequipStat>& missingItems, Base* base, bool isRearm) : _base(base)
+//CannotReequipState::CannotReequipState(std::vector<ReequipStat>& missingItems, Base* base, bool isRearm) : _base(base), _isRearm(isRearm)
+CannotReequipState::CannotReequipState(Base* base, std::string craftName, bool isRearm) : _base(base), _isRearm(isRearm), _craftName(craftName),
+	 _delayedInitDone(false), _btnOk(nullptr), _btnManufacture(nullptr), _btnPurchase(nullptr), _btnTransfert(nullptr),
+	_window(nullptr), _txtTitle(nullptr), _txtItem(nullptr), _txtQuantity(nullptr), _txtCraft(nullptr), _lstItems(nullptr),
+	_missingItemsMap()
 {
-	// Create objects
+	_missingItemsMap.clear(); // extra safety...
+}
+
+void CannotReequipState::delayedInit()
+{
+	if (_delayedInitDone)
+		return;
+	_delayedInitDone = true;
+
+		// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnManufacture = new TextButton(128, 14, 10, 178);
 	_btnPurchase = new TextButton(128, 14, 144, 178);
@@ -102,12 +115,12 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat>& missingItems, B
 	_txtItem = new Text(142, 9, 10, 50);
 	_txtQuantity = new Text(88, 9, 152, 50);
 	_txtCraft = new Text(74, 9, 218, 50);
-	_lstItems = new TextList(288, 112, 8, 58);
+	_lstItems = new TextList(288, 96, 8, 58);
 
 	// Set palette
 	const std::string& category = "cannotReequip";
 	setInterface(category);
-	
+
 	add(_window, "window", category);
 	add(_btnManufacture, "button", category);
 	add(_btnPurchase, "button", category);
@@ -138,13 +151,14 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat>& missingItems, B
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyCancel);
 
-	if (isRearm)
+	if (_isRearm)
 	{
+		std::string objectName = (_missingItemsMap.size() >= 1) ? tr(_missingItemsMap.begin()->first->getType()) : tr("STR_ERROR");
 		std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
-							  .arg(tr(missingItems[0].item))
-							  .arg(missingItems[0].craft)
-							  .arg(base->getName());
-		_txtTitle->setText(msg);
+							  .arg(objectName)
+							  .arg(_craftName)
+							  .arg(_base->getName());
+		_txtTitle->setText(msg);	
 	}
 	else
 	{
@@ -165,20 +179,8 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat>& missingItems, B
 	_lstItems->setBackground(_window);
 	_lstItems->setMargin(2);
 	_lstItems->onMouseClick((ActionHandler)&CannotReequipState::lstClick);
-
-	for (auto& i : missingItems)
-	{
-		if (i.qty > 0)
-		{
-			auto* rule = _game->getMod()->getItem(i.item);
-			if (rule)
-			{
-				_missingItemsMap[rule] = i.qty;
-			}
-		}
-	}
-
 }
+
 
 /**
  *
@@ -192,6 +194,7 @@ CannotReequipState::~CannotReequipState()
  */
 void CannotReequipState::init()
 {
+	delayedInit();
 	State::init();
 
 	_lstItems->clearList();
@@ -202,13 +205,30 @@ void CannotReequipState::init()
 		{
 			std::ostringstream ss;
 			ss << pair.second;
-			_lstItems->addRow(3, tr(pair.first->getType()).c_str(), ss.str().c_str(), "");
+			_lstItems->addRow(3, tr(pair.first->getType()).c_str(), ss.str().c_str(), _craftName);
 		}
+		else
+			_missingItemsMap.erase(pair.first); // remove items with no missing qty
 	}
 
 	_btnTransfert->setVisible(checkAvailability());
 	_btnManufacture->setVisible(!_missingItemsMap.empty());
 	_btnPurchase->setVisible(!_missingItemsMap.empty());
+}
+
+/**
+ * Checks if there are no missing items, deletes the state if so.
+ * @return true if the state was empty thus deleted.
+ */
+
+bool CannotReequipState::deleteIfEmpty()
+{
+	if (_missingItemsMap.empty())
+	{
+		delete this;
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -254,11 +274,33 @@ void CannotReequipState::btnTransfertClick(Action* action)
 /**
  * Gets the list of missing items.
  */
-std::map<RuleItem*, int> *CannotReequipState::getMissingItems()
+CannotReequipState::MissingItemsMap* CannotReequipState::getMissingItems()
 {
 	if (_missingItemsMap.empty())
 		return nullptr;
 	return &_missingItemsMap;
+}
+
+/**
+* Adds or increases a missing item
+ * @param rule Type of item.
+ * @param amount Number of items missing.
+ * @return true if the item was added/increased.
+ */
+
+bool CannotReequipState::addMissingItem(const RuleItem* rule, int amount)
+{
+	if (!rule) // do not allow null rules
+		return false;
+
+	auto it = _missingItemsMap.find(rule);
+	if (it == _missingItemsMap.end())
+	{
+		_missingItemsMap[rule] = amount;
+	}
+	else
+		it->second += amount;
+	return true;
 }
 
 /**
@@ -267,9 +309,9 @@ std::map<RuleItem*, int> *CannotReequipState::getMissingItems()
  * @param amount Number of items bought.
  * @return false if there are *now* no more missing items of this type. (false means a change of state)
  */
-bool CannotReequipState::decreaseMissingItemCount(const RuleItem* rule, int amount)
+bool CannotReequipState::decreaseMissingItem(const RuleItem* rule, int amount)
 {
-	auto it = _missingItemsMap.find(const_cast<RuleItem*>(rule));
+	auto it = _missingItemsMap.find(rule);
 	if (it != _missingItemsMap.end())
 	{
 		it->second = std::max(0, it->second - amount);
@@ -282,7 +324,7 @@ bool CannotReequipState::decreaseMissingItemCount(const RuleItem* rule, int amou
 	return true;
 }
 
-std::pair<RuleItem*, int> CannotReequipState::getMissingItemByIndex(size_t index) const 
+std::pair<const RuleItem*, int> CannotReequipState::getMissingItemByIndex(size_t index) const 
 {
 	if (index >= _missingItemsMap.size())
 	{
@@ -290,7 +332,7 @@ std::pair<RuleItem*, int> CannotReequipState::getMissingItemByIndex(size_t index
 	}
 	auto it = _missingItemsMap.begin();
 	std::advance(it, index);
-	return std::pair<RuleItem*, int>(it->first, it->second);
+	return std::pair<const RuleItem*, int>(it->first, it->second);
 }
 
 } // namespace OpenXcom

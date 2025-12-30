@@ -1086,7 +1086,8 @@ void CraftEquipmentState::loadGlobalLoadout(int index, bool onlyAddItems)
 
 	// lastly check and report what's missing
 	std::string craftName = c->getName(_game->getLanguage());
-	std::vector<ReequipStat> _missingItems;
+	CannotReequipState* cannotReequipState = CannotReequipState::create(_base, craftName);
+	
 	for (const auto& templateItem : *tmpl->getContents())
 	{
 		const RuleItem *item = templateItem.first;
@@ -1124,20 +1125,14 @@ void CraftEquipmentState::loadGlobalLoadout(int index, bool onlyAddItems)
 			int missing = tQty - cQty;
 			if (missing > 0)
 			{
-				ReequipStat stat = { item->getType(), missing, craftName, item->getListOrder() };
-				_missingItems.push_back(stat);
+				cannotReequipState->addMissingItem(item, missing);
 			}
 		}
 	}
 
-	if (!_missingItems.empty())
+	if (!cannotReequipState->deleteIfEmpty())
 	{
-		std::sort(_missingItems.begin(), _missingItems.end(), [](const ReequipStat &a, const ReequipStat &b)
-			{
-				return a.listOrder < b.listOrder;
-			}
-		);
-		_game->pushState(new CannotReequipState(_missingItems, _base));
+		_game->pushState(cannotReequipState);
 	}
 
 	// turn back the original setting

@@ -39,6 +39,7 @@ class RuleItem;
 class RuleEvent;
 class BattleUnit;
 struct UnitStats;
+class CannotReequipState;
 
 struct DebriefingStat {
 	std::string item;
@@ -49,7 +50,7 @@ struct DebriefingStat {
 	DebriefingStat(const std::string &_item, bool _recovery) : item(_item), qty(0), score(0), recovery(_recovery) {};
 	};
 
-struct ReequipStat { std::string item; int qty; std::string craft; int listOrder; };
+//struct ReequipStat { std::string item; int qty; std::string craft; int listOrder; };
 
 struct RecoveryItem { std::string name; int value; };
 
@@ -76,7 +77,8 @@ private:
 	TextList *_lstStats, *_lstRecovery, *_lstTotal, *_lstSoldierStats, *_lstRecoveredItems;
 	std::string _currentTooltip;
 	Text *_txtTooltip;
-	std::vector<ReequipStat> _missingItems;
+	//std::vector<ReequipStat> _missingItems;
+	CannotReequipState *_cannotReequipState;
 	std::map<const RuleItem*, int> _rounds, _roundsPainKiller, _roundsStimulant, _roundsHeal, _recoveredItems;
 	Uint8 _ammoColor;
 	std::map<int, RecoveryItem*> _recoveryStats;

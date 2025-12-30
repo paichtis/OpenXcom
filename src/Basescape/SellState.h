@@ -81,11 +81,11 @@ private:
 
 	/// Set autosell color
 	inline void setAutoSellColor(int line);
+	void addFirstCategories();
 	
   public:
 	/// Creates the Sell state.
 	SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin origin = OPT_GEOSCAPE);
-	void addFirstCategories();
 
 	/// Gets the (current/next/previous) base index depending on 'direction'.
 	size_t nextBaseIndex(int direction = 0) const;

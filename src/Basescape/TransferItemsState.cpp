@@ -683,7 +683,7 @@ void TransferItemsState::completeTransfer()
 				if (_parent)
 				{
 					// remember the decreased amount for next buy
-					_parent->decreaseMissingItemCount(item, transferRow.amount); // no worries does nothing if not in the missing items map
+					_parent->decreaseMissingItem(item, transferRow.amount); // no worries does nothing if not in the missing items map
 				}
 
 				break;

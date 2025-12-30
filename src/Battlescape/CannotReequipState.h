@@ -33,27 +33,61 @@ class RuleItem;
 
 /**
  * Screen shown when there's not enough equipment
- * to re-equip a craft after a mission.
+ * to re-equip a craft after a mission, when loading a saved equipement loadout or when it lacks ammunition.
+ *
+ * This class is created in two steps
+ *  - first via create() and is used to keep track of missing items. It deletes itself if there are no missing items
+ *  - after that and only if items are missing delayedInit() is called by the state manager to actually create the interface elements
  */
 class CannotReequipState : public State
 {
-private:
+  public:
+	using RulePtr = const RuleItem*;
+	/// Comparator for RuleItem pointers based on their list order.
+	struct RuleComparator
+	{
+		bool operator()(const RulePtr& a, const RulePtr& b) const
+		{
+			if (a->getListOrder() == b->getListOrder())
+			{ // paichits : AFAIK schould not happen but ...
+				return a < b; // default pointer comparison 
+			}
+			return a->getListOrder() < b->getListOrder();
+		}
+	};
+  private:
 	//std::vector<ReequipStat> _missingItems;
-	std::map<RuleItem*, int> _missingItemsMap;
+	using MissingItemsMap = std::map<const RuleItem*, int, CannotReequipState::RuleComparator>;
+	MissingItemsMap _missingItemsMap;
 	Base *_base;
+	bool _isRearm;
+	std::string _craftName;
 
 	TextButton *_btnOk, *_btnManufacture, *_btnPurchase, *_btnTransfert;
 	Window *_window;
 	Text *_txtTitle, *_txtItem, *_txtQuantity, *_txtCraft;
 	TextList *_lstItems;
+	bool _delayedInitDone = false;
+
+	/// Creates the Cannot Reequip state. is private to force use of create() and therefore new/delete.
+	CannotReequipState(Base* base, std::string craftName, bool isRearm = false);
 
 	public:
 	/// Creates the Cannot Reequip state.
-	CannotReequipState(std::vector<ReequipStat> &missingItems, Base *base, bool isRearm = false);
+	 static CannotReequipState* create(Base* base, std::string craftName, bool isRearm = false)
+	{
+		  return new CannotReequipState(base, craftName, isRearm);
+	}
+	/// Checks if there are no missing items, deletes the state if so.
+	bool deleteIfEmpty();
+
 	/// Cleans up the Cannot Reequip state.
-	~CannotReequipState();
+	virtual ~CannotReequipState();
 	/// Resets state.
 	void init() override;
+
+	/// Delayed initialization.
+	void delayedInit();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Manufacture button.
@@ -67,13 +101,15 @@ private:
 	/// Handler for clicking the items list.
 	void lstClick(Action* action);
 	/// Gets the list of missing items.
-	std::map<RuleItem*, int> *getMissingItems();
+	MissingItemsMap* getMissingItems();
+	/// Adds or increases a missing item
+	bool addMissingItem(const RuleItem* rule, int amount);
 	// Decreases the number of missing items by the bought amount.
-	bool decreaseMissingItemCount(const RuleItem* rule, int amount);
+	bool decreaseMissingItem(const RuleItem* rule, int amount);
 	// Checks if an item is missing.
-	bool isMissing(RuleItem* item) const { return _missingItemsMap.find(item) != _missingItemsMap.end(); }
-	std::pair<RuleItem*, int> getMissingItemByIndex(size_t index) const;
-	auto find(RuleItem* rule) const { return _missingItemsMap.find(rule); }
+	bool isMissing(const RuleItem* item) const { return _missingItemsMap.find(item) != _missingItemsMap.end(); }
+	std::pair<const RuleItem*, int> getMissingItemByIndex(size_t index) const;
+	auto find(const RuleItem* rule) const { return _missingItemsMap.find(rule); }
 	auto end() const { return _missingItemsMap.end(); }
 	bool checkAvailability(Base* base) const;
 	bool checkAvailability() const;
