@@ -232,6 +232,21 @@ bool CannotReequipState::deleteIfEmpty()
 }
 
 /**
+ * @brief Pushes the state to the state manager if there are missing items, deletes it otherwise.
+ * @return true if the state was pushed, false if deleted. 
+ */
+
+bool CannotReequipState::pushOrDeleteIfEmpty()
+{
+	if (deleteIfEmpty())
+	{
+		return false;
+	}
+	_game->pushState(this);
+	return true;
+}
+
+/**
  * Returns to the previous screen.
  * @param action Pointer to an action.
  */

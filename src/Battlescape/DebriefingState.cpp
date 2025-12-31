@@ -903,9 +903,9 @@ void DebriefingState::btnOkClick(Action *)
 			{
 				_game->pushState(new PromotionsState);
 			}
-			if (_cannotReequipState && !_cannotReequipState->deleteIfEmpty())
+			if (_cannotReequipState)
 			{
-				_game->pushState(_cannotReequipState);
+				_cannotReequipState->pushOrDeleteIfEmpty();
 			}
 			// remove the wounded soldiers (and their items too if needed); this was moved here from BattleUnit::postMissionProcedures()
 			for (auto* soldier : *_base->getSoldiers())

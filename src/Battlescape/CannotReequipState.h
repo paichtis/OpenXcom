@@ -81,6 +81,9 @@ class CannotReequipState : public State
 	/// Checks if there are no missing items, deletes the state if so.
 	bool deleteIfEmpty();
 
+	/// Pushes the state to the state manager if there are missing items, deletes it otherwise.
+	bool pushOrDeleteIfEmpty();
+
 	/// Cleans up the Cannot Reequip state.
 	virtual ~CannotReequipState();
 	/// Resets state.

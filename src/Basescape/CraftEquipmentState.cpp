@@ -1129,11 +1129,7 @@ void CraftEquipmentState::loadGlobalLoadout(int index, bool onlyAddItems)
 			}
 		}
 	}
-
-	if (!cannotReequipState->deleteIfEmpty())
-	{
-		_game->pushState(cannotReequipState);
-	}
+	cannotReequipState->pushOrDeleteIfEmpty();
 
 	// turn back the original setting
 	Options::oxceAlternateCraftEquipmentManagement = backup;
