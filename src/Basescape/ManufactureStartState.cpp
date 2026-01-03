@@ -296,7 +296,7 @@ void ManufactureStartState::lstRequiredItemsMousePress(Action* action)
 		std::string articleId = item->getUfopediaType();
 		Ufopaedia::openArticle(_game, articleId);
 	}
-	else // left click
+	else if (_game->isLeftClick(action, true))
 	{
 		_game->pushState(new ItemLocationsState(item));
 	}
