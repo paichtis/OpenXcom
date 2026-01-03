@@ -57,6 +57,7 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Menu/ErrorMessageState.h"
 #include "../Engine/Sound.h"
+#include "CategoryComboBox.h"
 
 namespace OpenXcom
 {
@@ -77,21 +78,21 @@ SellState::SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin
 }
 
 /**
- * Initializes the item categories with mod independant categories (_cats vector)
+ * Initializes the combo box categories with mod independant categories
  */
 
 
 void SellState::addFirstCategories() {
-	_cats.push_back("STR_ALL_ITEMS");
-	_cats.push_back("STR_FILTER_HIDDEN");
+	_cbxCategory->push_back("STR_ALL_ITEMS");
+	_cbxCategory->push_back("STR_FILTER_HIDDEN");
 	if (Options::oxceBaseFilterResearchable)
 	{
-		_cats.push_back("STR_FILTER_RESEARCHED");
-		_cats.push_back("STR_FILTER_RESEARCHABLE");
+		_cbxCategory->push_back("STR_FILTER_RESEARCHED");
+		_cbxCategory->push_back("STR_FILTER_RESEARCHABLE");
 	}
 
 	if (_game->getSavedGame()->hasAutosellItems() && _debriefingState == 0)
-		_cats.push_back("STR_FILTER_AUTOSELL");
+		_cbxCategory->push_back("STR_FILTER_AUTOSELL");
 }
 
 size_t SellState::nextBaseIndex(int direction) const
@@ -190,7 +191,7 @@ void SellState::doBeforeBaseChange() {
 
 void SellState::doAfterBaseChange() {
 	// Base Navigation last steps
-	if (_selectedCategoryBeforeMove >= 0 && (size_t)_selectedCategoryBeforeMove < _cats.size())
+	if (_selectedCategoryBeforeMove >= 0 && (size_t)_selectedCategoryBeforeMove < _cbxCategory->getSize())
 	{
 		_cbxCategory->setSelected(_selectedCategoryBeforeMove);
 		_selectedCategoryBeforeMove = -1;
@@ -229,6 +230,12 @@ void SellState::nextBase(int direction)
 	_game->pushState(new SellState((*_game->getSavedGame()->getBases())[nextBaseIndex(direction)], _debriefingState, _origin)); // open new sell state for next/previous base
 }
 
+void SellState::addItemRow(TransferRow row)
+{
+	_items.push_back(row);
+	_cbxCategory->pushIfUnique(getCategory(row));
+}
+
 /**
  * Delayed constructor functionality.
  */
@@ -257,7 +264,7 @@ void SellState::delayedInit()
 	_txtQuantity = new Text(54, 9, 136, 44);
 	_txtSell = new Text(96, 9, 190, 44);
 	_txtValue = new Text(40, 9, 270, 44);
-	_cbxCategory = new ComboBox(this, 120, 16, 10, 36);
+	_cbxCategory = new CategoryComboBox(this, 120, 16, 10, 36);
 	_lstItems = new TextList(287, 120, 8, 54);
 
 	touchComponentsCreate(_txtTitle);
@@ -346,14 +353,7 @@ void SellState::delayedInit()
 		if (_debriefingState) break;
 		if (soldier->getCraft() == 0)
 		{
-			TransferRow row = { TRANSFER_SOLDIER, soldier, soldier->getName(true), 0, 1, 0, 0, -4, 0, 0, 0 };
-			_items.push_back(row);
-
-			std::string cat = getCategory(_items.size() - 1);
-			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-			{
-				_cats.push_back(cat);
-			}
+			addItemRow({TRANSFER_SOLDIER, soldier, soldier->getName(true), 0, 1, 0, 0, -4, 0, 0, 0});
 		}
 	}
 	for (auto* craft : *_base->getCrafts())
@@ -361,34 +361,16 @@ void SellState::delayedInit()
 		if (_debriefingState) break;
 		if (craft->getStatus() != "STR_OUT")
 		{
-			TransferRow row = { TRANSFER_CRAFT, craft, craft->getName(_game->getLanguage()), craft->getRules()->getSellCost(), 1, 0, 0, -3, 0, 0, craft->getRules()->getSellCost() };
-			_items.push_back(row);
-			std::string cat = getCategory(_items.size() - 1);
-			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-			{
-				_cats.push_back(cat);
-			}
+			addItemRow({TRANSFER_CRAFT, craft, craft->getName(_game->getLanguage()), craft->getRules()->getSellCost(), 1, 0, 0, -3, 0, 0, craft->getRules()->getSellCost()});
 		}
 	}
 	if (_base->getAvailableScientists() > 0 && _debriefingState == 0)
 	{
-		TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), 0, _base->getAvailableScientists(), 0, 0, -2, 0, 0, 0 };
-		_items.push_back(row);
-		std::string cat = getCategory(_items.size() - 1);
-		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-		{
-			_cats.push_back(cat);
-		}
+		addItemRow({TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), 0, _base->getAvailableScientists(), 0, 0, -2, 0, 0, 0});
 	}
 	if (_base->getAvailableEngineers() > 0 && _debriefingState == 0)
 	{
-		TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), 0, _base->getAvailableEngineers(), 0, 0, -1, 0, 0, 0 };
-		_items.push_back(row);
-		std::string cat = getCategory(_items.size() - 1);
-		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-		{
-			_cats.push_back(cat);
-		}
+		addItemRow({ TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), 0, _base->getAvailableEngineers(), 0, 0, -1, 0, 0, 0 });
 	}
 	for (auto& itemType : _game->getMod()->getItemsList())
 	{
@@ -429,16 +411,11 @@ void SellState::delayedInit()
 				_total += row.cost * qty;
 				_spaceChange -= qty * rule->getSize();
 			}
-			_items.push_back(row);
-			std::string cat = getCategory(_items.size() - 1);
-			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-			{
-				_cats.push_back(cat);
-			}
+			addItemRow(row);
 		}
 	}
 
-	_vanillaCategories = _cats.size();
+	_cbxCategory->setVanillaCategories();
 	if (_game->getMod()->getDisplayCustomCategories() > 0)
 	{
 		bool hasUnassigned = false;
@@ -466,26 +443,26 @@ void SellState::delayedInit()
 		// then use them nicely in order
 		if (_game->getMod()->getDisplayCustomCategories() == 1)
 		{
-			_cats.clear();
+			_cbxCategory->clear();
 			addFirstCategories();
-			_vanillaCategories = _cats.size();
+			_cbxCategory->setVanillaCategories();
 		}
 		for (auto& categoryName : _game->getMod()->getItemCategoriesList())
 		{
 			if (std::find(tempCats.begin(), tempCats.end(), categoryName) != tempCats.end())
 			{
-				_cats.push_back(categoryName);
+				_cbxCategory->push_back(categoryName);
 			}
 		}
 		if (hasUnassigned)
 		{
-			_cats.push_back("STR_UNASSIGNED");
+			_cbxCategory->push_back("STR_UNASSIGNED");
 		}
 	}
 
 	_txtSales->setText(tr("STR_VALUE_OF_SALES").arg(Unicode::formatFunding(_total)));
 
-	_cbxCategory->setOptions(_cats, true);
+	_cbxCategory->setOptions();
 	_cbxCategory->onChange((ActionHandler)&SellState::cbxCategoryChange);
 	_cbxCategory->onKeyboardPress((ActionHandler)&SellState::btnSellAllClick, Options::keySellAll);
 	_cbxCategory->onKeyboardPress((ActionHandler)&SellState::btnSellAllButOneClick, Options::keySellAllButOne);
@@ -540,26 +517,15 @@ void SellState::think()
 }
 
 /**
- * Adds a unique category to the category list (_cats).
- * @param cat Category to add.
- */
-void SellState::addUniqueCategory(const std::string& cat)
-{
-	if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	{
-		_cats.push_back(cat);
-	}
-}
-
-/**
  * Determines the category a row item belongs in.
- * @param sel Selected row.
+ * @param row Row item.
  * @returns Item category.
  */
-std::string SellState::getCategory(int sel) const
+
+std::string SellState::getCategory(TransferRow row) const
 {
-	RuleItem *rule = 0;
-	switch (_items[sel].type)
+	RuleItem* rule = 0;
+	switch (row.type)
 	{
 	case TRANSFER_SOLDIER:
 	case TRANSFER_SCIENTIST:
@@ -568,7 +534,7 @@ std::string SellState::getCategory(int sel) const
 	case TRANSFER_CRAFT:
 		return "STR_CRAFT_ARMAMENT";
 	case TRANSFER_ITEM:
-		rule = (RuleItem*)_items[sel].rule;
+		rule = (RuleItem*)row.rule;
 		if (rule->getBattleType() == BT_CORPSE || rule->isAlien())
 		{
 			if (rule->getVehicleUnit())
@@ -588,6 +554,17 @@ std::string SellState::getCategory(int sel) const
 		return "STR_EQUIPMENT";
 	}
 	return "STR_ALL_ITEMS";
+}
+
+
+/**
+ * Determines the category a row item belongs in.
+ * @param sel Selected row.
+ * @returns Item category.
+ */
+std::string SellState::getCategory(int sel) const
+{
+	return getCategory(_items[sel]);
 }
 
 /**
@@ -704,7 +681,7 @@ void SellState::updateList()
 	_rows.clear();
 
 	size_t selCategory = _cbxCategory->getSelected();
-	const std::string selectedCategory = _cats[selCategory];
+	const std::string selectedCategory = _cbxCategory->getSelectedCategory();
 	bool categoryFilterEnabled = (selectedCategory != "STR_ALL_ITEMS");
 	bool categoryUnassigned = (selectedCategory == "STR_UNASSIGNED");
 	bool categoryHidden = (selectedCategory == "STR_FILTER_HIDDEN");
@@ -763,7 +740,7 @@ void SellState::updateList()
 			else // don't show non-items (e.g. craft, personnel)
 				continue;
 		}
-		else if (selCategory >= _vanillaCategories)
+		else if (_cbxCategory->isVanillaCategory(selCategory))
 		{
 			if (categoryUnassigned && _items[i].type == TRANSFER_ITEM)
 			{
@@ -1148,7 +1125,7 @@ void SellState::lstItemsLeftArrowClick(Action *action)
 	{
 		if (getRow().qtySrc > getRow().amount)			changeByValue(INT_MAX, 1);
 		else if (																		// if already at max .... 
-					(_cats[_cbxCategory->getSelected()] != "STR_FILTER_AUTOSELL") &&	// ... and not in autosell view 
+					_cbxCategory->isSelected("STR_FILTER_AUTOSELL") &&	// ... and not in autosell view 
 					(getRow().type == TRANSFER_ITEM) &&									// ... and is an item
 					!_debriefingState  )												// ... and not in debriefing	
 		{                                                                               //  we then add it to the autosell list
@@ -1248,7 +1225,7 @@ void SellState::lstItemsMousePress(Action *action)
 					{
 						if (!rule->getType().empty())
 						{
-							bool categoryHidden = (_cats[_cbxCategory->getSelected()] == "STR_FILTER_HIDDEN");
+							bool categoryHidden = _cbxCategory->isSelected("STR_FILTER_HIDDEN");
 
 							auto& hiddenMap = _game->getSavedGame()->getHiddenPurchaseItems();
 							auto iter = hiddenMap.find(rule->getType());
@@ -1289,7 +1266,7 @@ void SellState::lstItemsMousePress(Action *action)
 
 					if (0) // what follows is unnecessary now that we change the color of autosell items in the list
 					{
-						if (_cats[_cbxCategory->getSelected()] == "STR_FILTER_AUTOSELL") // autosell view
+						if ( _cbxCategory->isSelected("STR_FILTER_AUTOSELL")) // autosell view
 						{
 							_game->getSavedGame()->setAutosell(rule, false); // remove from autosell
 							refreshList();                                   // update screen preserving scroll position

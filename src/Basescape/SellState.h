@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 
+
 namespace OpenXcom
 {
 
@@ -31,11 +32,13 @@ class Window;
 class Text;
 class TextEdit;
 class TextList;
-class ComboBox;
+class CategoryComboBox;
 class Timer;
 class Base;
 class DebriefingState;
 class RuleItem;
+
+
 
 /**
  * Sell/Sack screen that lets the player sell
@@ -50,12 +53,10 @@ private:
 	TextEdit *_btnQuickSearch;
 	Window *_window;
 	Text *_txtTitle, *_txtSales, *_txtFunds, *_txtQuantity, *_txtSell, *_txtValue, *_txtSpaceUsed;
-	ComboBox *_cbxCategory;
+	CategoryComboBox* _cbxCategory;
 	TextList *_lstItems;
 	std::vector<TransferRow> _items;
 	std::vector<int> _rows;
-	std::vector<std::string> _cats;
-	size_t _vanillaCategories;
 	size_t _sel;
 	int64_t _total;
 	double _spaceChange;
@@ -67,11 +68,12 @@ private:
 	bool _delayedInitDone;
 	TransferSortDirection _previousSort, _currentSort;
 
-	/// Adds a unique category to the category list (_cats).
-	void addUniqueCategory(const std::string& cat);
-
 	/// Gets the category of the current selection.
 	std::string getCategory(int sel) const;
+
+	std::string getCategory(TransferRow row) const;
+	void addItemRow(TransferRow row);
+
 	/// Determines if the current selection belongs to a given category.
 	bool belongsToCategory(int sel, const std::string &cat) const;
 	/// Checks for hidden items

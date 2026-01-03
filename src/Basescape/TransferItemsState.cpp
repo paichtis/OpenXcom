@@ -46,11 +46,11 @@
 #include "../fmath.h"
 #include "../Mod/RuleInterface.h"
 #include "../Mod/Armor.h"
-#include "../Interface/ComboBox.h"
 #include "TechTreeViewerState.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Battlescape/DebriefingState.h"
 #include "../Battlescape/CannotReequipState.h"
+#include "CategoryComboBox.h"
 
 namespace OpenXcom
 {
@@ -61,16 +61,16 @@ namespace OpenXcom
 
 void TransferItemsState::addFirstCategories()
 {
-	_cats.push_back("STR_ALL_ITEMS");
+	_cbxCategory->push_back("STR_ALL_ITEMS");
 	if (_parent)
 	{
-		_cats.push_back("STR_FILTER_MISSING");
+		_cbxCategory->push_back("STR_FILTER_MISSING");
 	}
-	_cats.push_back("STR_ITEMS_AT_DESTINATION");
+	_cbxCategory->push_back("STR_ITEMS_AT_DESTINATION");
 	if (Options::oxceBaseFilterResearchable)
 	{
-		_cats.push_back("STR_FILTER_RESEARCHED");
-		_cats.push_back("STR_FILTER_RESEARCHABLE");
+		_cbxCategory->push_back("STR_FILTER_RESEARCHED");
+		_cbxCategory->push_back("STR_FILTER_RESEARCHABLE");
 	}
 }
 
@@ -94,7 +94,7 @@ TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingS
 	_txtQuantity = new Text(50, 9, 150, 24);
 	_txtAmountTransfer = new Text(60, 17, 200, 24);
 	_txtAmountDestination = new Text(60, 17, 260, 24);
-	_cbxCategory = new ComboBox(this, 120, 16, 10, 24);
+	_cbxCategory = new CategoryComboBox(this, 120, 16, 10, 24);
 	_lstItems = new TextList(287, 128, 8, 44);
 
 	touchComponentsCreate(_txtTitle);
@@ -169,10 +169,7 @@ TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingS
 			TransferRow row = { TRANSFER_SOLDIER, soldier, soldier->getName(true), (int)(5 * _distance), 1, 0, 0, -4, 0, 0, (int)(5 * _distance) };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
-			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-			{
-				_cats.push_back(cat);
-			}
+			_cbxCategory->pushIfUnique(cat);
 		}
 	}
 	for (auto* craft : *_baseFrom->getCrafts())
@@ -183,10 +180,7 @@ TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingS
 			TransferRow row = { TRANSFER_CRAFT, craft, craft->getName(_game->getLanguage()),  (int)(25 * _distance), 1, 0, 0, -3, 0, 0, (int)(25 * _distance) };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
-			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-			{
-				_cats.push_back(cat);
-			}
+			_cbxCategory->pushIfUnique(cat);
 		}
 	}
 	if (_baseFrom->getAvailableScientists() > 0 && _debriefingState == 0)
@@ -194,20 +188,14 @@ TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingS
 		TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"),  (int)(5 * _distance), _baseFrom->getAvailableScientists(), _baseTo->getAvailableScientists(), 0, -2, 0, 0, _baseFrom->getAvailableScientists() * (int)(5 * _distance) };
 		_items.push_back(row);
 		std::string cat = getCategory(_items.size() - 1);
-		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-		{
-			_cats.push_back(cat);
-		}
+		_cbxCategory->pushIfUnique(cat);
 	}
 	if (_baseFrom->getAvailableEngineers() > 0 && _debriefingState == 0)
 	{
 		TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"),  (int)(5 * _distance), _baseFrom->getAvailableEngineers(), _baseTo->getAvailableEngineers(), 0, -1, 0, 0, _baseFrom->getAvailableEngineers() * (int)(5 * _distance) };
 		_items.push_back(row);
 		std::string cat = getCategory(_items.size() - 1);
-		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-		{
-			_cats.push_back(cat);
-		}
+		_cbxCategory->pushIfUnique(cat);
 	}
 	for (auto& itemType : _game->getMod()->getItemsList())
 	{
@@ -222,14 +210,11 @@ TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingS
 			TransferRow row = { TRANSFER_ITEM, rule, tr(itemType),  (int)(1 * _distance), qty, _baseTo->getStorageItems()->getItem(rule), 0, rule->getListOrder(), rule->getSize(), qty * rule->getSize(), qty * (int)(1 * _distance) };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
-			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-			{
-				_cats.push_back(cat);
-			}
+			_cbxCategory->pushIfUnique(cat);
 		}
 	}
 
-	_vanillaCategories = _cats.size();
+	_cbxCategory->setVanillaCategories();
 	if (_game->getMod()->getDisplayCustomCategories() > 0)
 	{
 		bool hasUnassigned = false;
@@ -257,24 +242,24 @@ TransferItemsState::TransferItemsState(Base* baseFrom, Base* baseTo, DebriefingS
 		// then use them nicely in order
 		if (_game->getMod()->getDisplayCustomCategories() == 1)
 		{
-			_cats.clear();
+			_cbxCategory->clear();
 			addFirstCategories();
-			_vanillaCategories = _cats.size();
+			_cbxCategory->setVanillaCategories();
 		}
 		for (auto& categoryName : _game->getMod()->getItemCategoriesList())
 		{
 			if (std::find(tempCats.begin(), tempCats.end(), categoryName) != tempCats.end())
 			{
-				_cats.push_back(categoryName);
+				_cbxCategory->push_back(categoryName);
 			}
 		}
 		if (hasUnassigned)
 		{
-			_cats.push_back("STR_UNASSIGNED");
+			_cbxCategory->push_back("STR_UNASSIGNED");
 		}
 	}
 
-	_cbxCategory->setOptions(_cats, true);
+	_cbxCategory->setOptions();
 	if (_parent )
 	{
 		_cbxCategory->setSelected(_missingItemsCategory); // STR_FILTER_MISSING
@@ -427,7 +412,7 @@ void TransferItemsState::updateList()
 	_rows.clear();
 
 	size_t selCategory = _cbxCategory->getSelected();
-	const std::string cat = _cats[selCategory];
+	const std::string cat = _cbxCategory->getSelectedCategory();
 	bool allItems = (cat == "STR_ALL_ITEMS");
 	bool missingItems = (cat == "STR_FILTER_MISSING");
 	bool onlyItemsAtDestination = (cat == "STR_ITEMS_AT_DESTINATION");
@@ -466,7 +451,9 @@ void TransferItemsState::updateList()
 				continue;
 			}
 		}
-		else if (selCategory >= _vanillaCategories)
+//		else if (selCategory >= _vanillaCategories)
+
+		else if (_cbxCategory->isVanillaCategory(selCategory))
 		{
 			if (categoryUnassigned && _items[i].type == TRANSFER_ITEM)
 			{
