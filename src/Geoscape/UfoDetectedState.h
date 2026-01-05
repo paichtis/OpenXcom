@@ -42,17 +42,34 @@ private:
 	Window *_window;
 	Text *_txtUfo, *_txtDetected, *_txtHyperwave;
 	TextList *_lstInfo, *_lstInfo2;
+
+	bool _foundCraftArticle = false;
+	bool _foundRaceArticle = false;
+	bool _foundMissionArticle = false;
+	bool _firstClick = true;
+
+	/// checks if an article exists for type and returns a visual indicator
+	std::string hasUfoPaidiaIndicator(const std::string& type, bool &flag);
+
 public:
 	/// Creates the Ufo Detected state.
 	UfoDetectedState(Ufo *ufo, GeoscapeState *state, bool detected, bool hyperwave);
 	/// Cleans up the Ufo Detected state.
 	~UfoDetectedState();
+
+	/// Initializes the state.
+	void init() override;
+
 	/// Handler for clicking the Intercept button.
 	void btnInterceptClick(Action *action);
 	/// Handler for clicking the Centre on UFO button.
 	void btnCentreClick(Action *action);
 	/// Handler for clicking the Cancel button.
 	void btnCancelClick(Action *action);
+
+	/// Handler for clicking the info list.
+	void lstInfo2Click(Action* action);
+
 	/// Handler for pressing/releasing CTRL.
 	void toggleCancel(Action *action);
 };

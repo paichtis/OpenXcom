@@ -35,9 +35,28 @@
 #include "../Savegame/AlienMission.h"
 #include "InterceptState.h"
 #include "../Mod/RuleCraft.h"
+#include "../Ufopaedia/Ufopaedia.h"
 
 namespace OpenXcom
 {
+
+/**
+ * Checks if a Ufopaedia article is available and returns.
+ * @param type The type of the Ufopaedia article.
+ * @param flag Reference to a boolean flag that will be set to true if the article is available.
+ * @return A string containing a visual indicator if the article is available, otherwise an empty string.
+ */
+
+std::string UfoDetectedState::hasUfoPaidiaIndicator(const std::string& type, bool &flag)
+{
+	ArticleDefinition* article = _game->getMod()->getUfopaediaArticle(type, false);
+	if (article && Ufopaedia::isArticleAvailable(_game->getSavedGame(), article))
+	{
+		flag = true;
+		return "(*)";
+	}
+	return "";
+}
 
 /**
  * Initializes all the elements in the Ufo Detected window.
@@ -47,7 +66,7 @@ namespace OpenXcom
  * @param detected Was the UFO detected?
  * @param hyperwave Was it a hyperwave radar?
  */
-UfoDetectedState::UfoDetectedState(Ufo *ufo, GeoscapeState *state, bool detected, bool hyperwave) : _ufo(ufo), _state(state)
+UfoDetectedState::UfoDetectedState(Ufo* ufo, GeoscapeState* state, bool detected, bool hyperwave) : _ufo(ufo), _state(state)
 {
 	// Generate UFO ID
 	if (_ufo->getId() == 0)
@@ -199,21 +218,79 @@ UfoDetectedState::UfoDetectedState(Ufo *ufo, GeoscapeState *state, bool detected
 	_lstInfo2->setDot(true);
 
 	ss.str("");
-	ss << Unicode::TOK_COLOR_FLIP << tr(_ufo->getRules()->getType());
+	std::string craftType = _ufo->getRules()->getType();
+	ss << Unicode::TOK_COLOR_FLIP << tr(craftType) << hasUfoPaidiaIndicator(craftType, _foundCraftArticle);
 	_lstInfo2->addRow(2, tr("STR_CRAFT_TYPE").c_str(), ss.str().c_str());
 
 	ss.str("");
-	ss << Unicode::TOK_COLOR_FLIP << tr(_ufo->getAlienRace());
+	ss << Unicode::TOK_COLOR_FLIP << tr(_ufo->getAlienRace()) << hasUfoPaidiaIndicator(_ufo->getAlienRace(), _foundRaceArticle);
 	_lstInfo2->addRow(2, tr("STR_RACE").c_str(), ss.str().c_str());
 
 	ss.str("");
-	ss << Unicode::TOK_COLOR_FLIP << tr(_ufo->getMissionType());
+	ss << Unicode::TOK_COLOR_FLIP << tr(_ufo->getMissionType()) << hasUfoPaidiaIndicator(_ufo->getMissionType(), _foundMissionArticle);
 	_lstInfo2->addRow(2, tr("STR_MISSION").c_str(), ss.str().c_str());
 
 	ss.str("");
 	ss << Unicode::TOK_COLOR_FLIP << tr(_ufo->getMission()->getRegion());
 	_lstInfo2->addRow(2, tr("STR_ZONE").c_str(), ss.str().c_str());
 }
+
+void UfoDetectedState::init()
+{
+	State::init();
+	if (_foundCraftArticle || _foundRaceArticle || _foundMissionArticle)
+	{
+		_lstInfo2->onMouseClick((ActionHandler)&UfoDetectedState::lstInfo2Click);
+		_lstInfo2->setBackground(_window);
+		_lstInfo2->setSelectable(true);
+
+	}
+}
+
+/**
+ * Handler for clicking the info list.
+ * @param action Pointer to an action.
+ */
+
+void UfoDetectedState::lstInfo2Click(Action* action)
+{
+#if 0
+	if (_firstClick)
+	{
+		_firstClick = false;
+		
+		return;
+	}
+#endif // 0
+	size_t row = _lstInfo2->getSelectedRow();
+	switch (row)
+	{
+	case 0: // craft type
+		if (_foundCraftArticle)
+		{
+			ArticleDefinition* article = _game->getMod()->getUfopaediaArticle(_ufo->getRules()->getType(), false);
+			Ufopaedia::openArticle(_game, article);
+		}
+		break;
+	case 1: // race
+		if (_foundRaceArticle)
+		{
+			ArticleDefinition* article = _game->getMod()->getUfopaediaArticle(_ufo->getAlienRace(), false);
+			Ufopaedia::openArticle(_game, article);
+		}
+		break;
+	case 2: // mission
+		if (_foundMissionArticle)
+		{
+			ArticleDefinition* article = _game->getMod()->getUfopaediaArticle(_ufo->getMissionType(), false);
+			Ufopaedia::openArticle(_game, article);
+		}
+		break;
+	default:
+		break;
+	}
+}
+	
 
 /**
  *
