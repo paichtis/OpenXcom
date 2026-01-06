@@ -79,9 +79,18 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 		_btnOk = new TextButton(148, 16, 164, 176);
 		_btnMemorial = new TextButton(148, 16, 8, 176);
 	}
-	_btnPsiTraining = new TextButton(96, 16, 112, 176);
-	_btnTraining = new TextButton(96, 16, 112, 176);
-	_cbxScreenActions = new ComboBox(this, 148, 16, 8, 176, true);
+	if (showCombobox)
+	{
+		_cbxScreenActions = new ComboBox(this, 148, 16, 8, 176, true);
+		_btnMemorial = _btnPsiTraining = _btnTraining = nullptr;
+	}
+	else
+	{
+		_btnPsiTraining = new TextButton(96, 16, 112, 176);
+		_btnTraining = new TextButton(96, 16, 112, 176);
+		_cbxScreenActions = nullptr;
+	}
+	
 	_txtTitle = new Text(168, 17, 16, 8);
 	_cbxSortBy = new ComboBox(this, 120, 16, 192, 8, false);
 	_txtName = new Text(114, 9, 16, 32);
@@ -121,24 +130,22 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnOkClick, Options::keyCancel);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnInventoryClick, Options::keyBattleInventory);
 
-	_btnPsiTraining->setText(tr("STR_PSI_TRAINING"));
-	_btnPsiTraining->onMouseClick((ActionHandler)&SoldiersState::btnPsiTrainingClick);
-	_btnPsiTraining->setVisible(isPsiBtnVisible);
-
-	_btnTraining->setText(tr("STR_TRAINING"));
-	_btnTraining->onMouseClick((ActionHandler)&SoldiersState::btnTrainingClick);
-	_btnTraining->setVisible(isTrnBtnVisible);
-
-	_btnMemorial->setText(tr("STR_MEMORIAL"));
-	_btnMemorial->onMouseClick((ActionHandler)&SoldiersState::btnMemorialClick);
-
 	_availableOptions.clear();
-	if (showCombobox)
+	if (!showCombobox)
 	{
-		_btnMemorial->setVisible(false);
-		_btnPsiTraining->setVisible(false);
-		_btnTraining->setVisible(false);
+		_btnPsiTraining->setText(tr("STR_PSI_TRAINING"));
+		_btnPsiTraining->onMouseClick((ActionHandler)&SoldiersState::btnPsiTrainingClick);
+		_btnPsiTraining->setVisible(isPsiBtnVisible);
 
+		_btnTraining->setText(tr("STR_TRAINING"));
+		_btnTraining->onMouseClick((ActionHandler)&SoldiersState::btnTrainingClick);
+		_btnTraining->setVisible(isTrnBtnVisible);
+
+		_btnMemorial->setText(tr("STR_MEMORIAL"));
+		_btnMemorial->onMouseClick((ActionHandler)&SoldiersState::btnMemorialClick);
+	}
+	else
+	{
 		_availableOptions.push_back("STR_SOLDIER_INFO");
 		_availableOptions.push_back("STR_MEMORIAL");
 		_availableOptions.push_back("STR_INVENTORY");
