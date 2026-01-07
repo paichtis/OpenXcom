@@ -19,6 +19,8 @@
  */
 #include "../Engine/TouchState.h"
 #include "../Savegame/Transfer.h"
+#include "BaseSwitcher.h"
+
 #include <vector>
 #include <string>
 
@@ -40,14 +42,13 @@ class RuleItem;
  * Purchase/Hire screen that lets the player buy
  * new items for a base.
  */
-class PurchaseState : public TouchState
+class PurchaseState : public TouchState, public BaseSwitcher
 {
 private:
 	Base *_base;
 	CannotReequipState *_parent;
 	bool _isReequiping = false;
 	bool _autoBuyDone;
-	//std::map<RuleItem*, int> *_missingItemsMap = nullptr;
 
 	TextButton *_btnOk, *_btnCancel;
 	TextEdit *_btnQuickSearch;
@@ -81,7 +82,22 @@ private:
 	int getMissingQty(int sel) const;
 	/// Gets the row of the current selection.
 	TransferRow &getRow() { return _items[_rows[_sel]]; }
-public:
+
+	/// -- start of base switching related members and methods --
+	
+	inline static size_t _selectedCategoryBeforeMove = -1;   // set before moving to another base, used to restore selection after move
+	inline static std::string _searchTextBeforeMove = ""; // set before moving to another base, used to restore quick search after move
+	inline static size_t _scrollPosBeforeMove = 0;           // set before moving to another base, used to restore scroll position after move
+	bool _inited = false;
+
+	void doBeforeBaseChange();
+	void doAfterBaseChange();
+	void doPush(Base* base);
+
+	BASE_SWITCHER_HANDLERS(PurchaseState);
+
+	/// -- end of base switching related members and methods --
+  public:
 	/// Creates the Purchase state.
 	PurchaseState(Base *base, CannotReequipState *parent = nullptr);
 	/// Cleans up the Purchase state.

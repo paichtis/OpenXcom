@@ -19,6 +19,7 @@
  */
 #include "../Engine/State.h"
 #include <vector>
+#include "../Basescape/BaseSwitcher.h"
 
 namespace OpenXcom
 {
@@ -37,7 +38,7 @@ struct SortFunctor;
  * Screen shown monthly to allow changing
  * soldiers currently in psi training.
  */
-class AllocateTrainingState : public State
+class AllocateTrainingState : public State, public BaseSwitcher
 {
 private:
 	TextButton *_btnOk;
@@ -55,6 +56,22 @@ private:
 	std::vector<SortFunctor *> _sortFunctors;
 	std::vector<SortFunctor *> _sortFunctorsPlus;
 	bool _doNotReset;
+
+	/// -- start of base switching related members and methods --
+
+	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
+	inline static bool _plusPressed = false;
+	inline static bool _movingBases = false;
+
+	void doBeforeBaseChange() override;
+	void doAfterBaseChange() override;
+	void doPush(Base* base) override { _game->pushState(new AllocateTrainingState(base)); } // nullptr because this combo has to be recalculated for each base
+
+	bool ignoreBase(Base* base) const override;
+
+	BASE_SWITCHER_HANDLERS(AllocateTrainingState);
+
+	/// -- end of base switching related members and methods --
 
 	///initializes the display list
 	void initList(size_t scrl);

@@ -148,9 +148,11 @@ size_t SellState::getValidBasesCount() const
  * Adds navigation buttons if there are multiple bases.
  */
 
-void SellState::addNavigationButtons() {
+void SellState::addNavigationButtons(InteractiveSurface *surface) {
 	if (_debriefingState || getValidBasesCount() <= 1)
 		return;
+
+
 	//TextButton(int width, int height, int x = 0, int y = 0);
 	_nextButton = new TextButton(10, 8, 310, 0);
 	_nextText = new Text(100, 8, 210, 0);
@@ -162,7 +164,9 @@ void SellState::addNavigationButtons() {
 	_nextText->setAlign(ALIGN_RIGHT);
 	_nextText->setText(getBaseName(1));
 	_nextText->setColor(_ammoColor); // using ammo color for lack of better
+
 	_nextButton->onMouseClick((ActionHandler)&SellState::btnNextBaseClick);
+	surface->onKeyboardPress((ActionHandler)&SellState::btnNextBaseClick, SDLK_PAGEDOWN);
 
 	if (getValidBasesCount() <= 2) // 2 bases only --> no need for previous button
 		return;
@@ -172,7 +176,6 @@ void SellState::addNavigationButtons() {
 	add(_prevButton, "button", "sellMenu");	
 	add(_prevText, "text", "sellMenu");
 	
-
 	_prevButton->setText("<-");
 	_prevButton->setAlign(ALIGN_LEFT);
 	_prevText->setSmall();
@@ -181,6 +184,7 @@ void SellState::addNavigationButtons() {
 	_prevText->setColor(_ammoColor); // using ammo color for lack of better
 
 	_prevButton->onMouseClick((ActionHandler)&SellState::btnPrevBaseClick);
+	surface->onKeyboardPress((ActionHandler)&SellState::btnPrevBaseClick, SDLK_PAGEUP);
 }
 
 void SellState::doBeforeBaseChange() {
@@ -288,8 +292,7 @@ void SellState::delayedInit()
 	add(_txtValue, "text", "sellMenu");
 	add(_lstItems, "list", "sellMenu");
 	add(_cbxCategory, "text", "sellMenu");
-	addNavigationButtons();
-
+	
 	touchComponentsAdd("button2", "sellMenu", _window);
 
 	centerAllSurfaces();
@@ -473,6 +476,8 @@ void SellState::delayedInit()
 
 	// OK button is not always visible, so bind it here
 	_cbxCategory->onKeyboardRelease((ActionHandler)&SellState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
+
+	addNavigationButtons(_cbxCategory);
 
 	doAfterBaseChange();
 	updateList();

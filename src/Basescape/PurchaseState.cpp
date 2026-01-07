@@ -55,6 +55,37 @@
 namespace OpenXcom
 {
 
+
+void PurchaseState::doBeforeBaseChange()
+{
+	_selectedCategoryBeforeMove = _cbxCategory->getSelected();
+	_searchTextBeforeMove = _btnQuickSearch->getText();
+	_scrollPosBeforeMove = _lstItems->getScroll();
+	btnOkClick(nullptr); // popstate and do the actual purchases
+}
+
+void PurchaseState::doAfterBaseChange()
+{
+	if (_selectedCategoryBeforeMove >= 0 && _selectedCategoryBeforeMove < _cats.size())
+	{
+		_cbxCategory->setSelected(_selectedCategoryBeforeMove);
+		_selectedCategoryBeforeMove = -1;
+	}
+	if (_searchTextBeforeMove != "")
+	{
+		_btnQuickSearch->setText(_searchTextBeforeMove);
+		_btnQuickSearch->setVisible(true);
+		_searchTextBeforeMove = "";
+	}
+}
+
+void PurchaseState::doPush(Base* base)
+{
+	_game->pushState(new PurchaseState(base));
+}
+
+
+
 /**
  * @brief Combines any number of functions into a function that returns true if all of them are true.
  * Short circuits as well.
@@ -90,7 +121,9 @@ void PurchaseState::addFirstCategories()
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(base), _parent(parent), _sel(0), _total(0), _pQty(0), _cQty(0), _iQty(0.0), _ammoColor(0)
+PurchaseState::PurchaseState(Base *base, CannotReequipState *parent)
+	: _base(base), _parent(parent), _sel(0), _total(0), _pQty(0), _cQty(0), _iQty(0.0), _ammoColor(0),
+	  BaseSwitcher(base)
 {
 	_autoBuyDone = false;
 	_isReequiping = (parent != nullptr);
@@ -338,7 +371,13 @@ PurchaseState::PurchaseState(Base *base, CannotReequipState *parent) : _base(bas
 
 	_btnOk->onKeyboardRelease((ActionHandler)&PurchaseState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
 
+	doAfterBaseChange();
 	updateList();
+	if (_scrollPosBeforeMove > 0)
+	{
+		_lstItems->scrollTo(_scrollPosBeforeMove);
+		_scrollPosBeforeMove = 0;
+	}
 
 	_autoBuyDone = true;
 	if (_isReequiping)
@@ -377,9 +416,17 @@ PurchaseState::~PurchaseState()
  */
 void PurchaseState::init()
 {
-	State::init();
+	if (_inited)
+		return;
+	_inited = true;
 
+	State::init();
 	touchComponentsRefresh();
+
+	if (!_isReequiping )
+	{
+		addNavigationButtons(this, _cbxCategory);
+	}
 }
 
 /**
@@ -639,7 +686,7 @@ void PurchaseState::updateList()
 			{
 				if (!_autoBuyDone)
 				{
-					RuleItem* rule = (RuleItem*)_items[i].rule;
+					const RuleItem* rule = (const RuleItem*)_items[i].rule;
 					if (rule->isAlien())
 					{
 						// don't buy automatically
@@ -848,7 +895,7 @@ void PurchaseState::btnOkClick(Action *)
 					if (_parent && _isReequiping)
 					{
 						// remember the decreased amount for next buy
-						_parent->decreaseMissingItemCount(rule, transferRow.amount); // no worries does nothing if not in the missing items map
+						_parent->decreaseMissingItem(rule, transferRow.amount); // no worries does nothing if not in the missing items map
 					}
 				}
 				break;

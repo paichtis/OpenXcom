@@ -20,6 +20,7 @@
 #include "../Engine/State.h"
 #include <vector>
 #include "SoldierSortUtil.h"
+#include "BaseSwitcher.h"
 
 namespace OpenXcom
 {
@@ -37,7 +38,7 @@ struct SortFunctor;
  * Soldiers screen that lets the player
  * manage all the soldiers in a base.
  */
-class SoldiersState : public State
+class SoldiersState : public State, public BaseSwitcher
 {
 private:
 	TextButton *_btnOk, *_btnPsiTraining, *_btnTraining, *_btnMemorial;
@@ -54,6 +55,23 @@ private:
 	size_t _mainOffset;
 	///initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
+
+	/// -- start of base switching related members and methods --
+
+	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
+	inline static size_t _selectedAction = -1;
+	bool _inited = false;
+
+	void doBeforeBaseChange() override; 
+	void doAfterBaseChange() override;
+	void doPush(Base* base) override { _game->pushState(new SoldiersState(base));  } // nullptr because this combo has to be recalculated for each base
+
+    bool ignoreBase(Base* base) const override;
+
+	BASE_SWITCHER_HANDLERS(SoldiersState);
+
+	/// -- end of base switching related members and methods --
+
 public:
 	/// Creates the Soldiers state.
 	SoldiersState(Base *base);

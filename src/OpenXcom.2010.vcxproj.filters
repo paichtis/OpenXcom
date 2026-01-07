@@ -1223,6 +1223,9 @@
     <ClCompile Include="Ufopaedia\ArticleStateUnit.cpp">
       <Filter>Ufopaedia</Filter>
     </ClCompile>
+    <ClCompile Include="Basescape\BaseSwitcher.cpp">
+      <Filter>Basescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2701,6 +2704,12 @@
     </ClInclude>
     <ClInclude Include="Ufopaedia\ArticleStateUnit.h">
       <Filter>Ufopaedia</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\BaseSwitcher.h">
+      <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\CategoryComboBox.h">
+      <Filter>Basescape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

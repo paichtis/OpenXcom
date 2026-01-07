@@ -43,12 +43,47 @@
 namespace OpenXcom
 {
 
+bool AllocateTrainingState::ignoreBase(Base* base) const
+{	// ignore bases with no soldiers and no training ability
+	return base->getSoldiers()->size() <= 0 || base->getAvailableTraining() <= 0;
+}
+
+void AllocateTrainingState::doBeforeBaseChange()
+{
+	_plusPressed = _btnPlus->getPressed();
+	_selectedSort = _cbxSortBy->getSelected(); 
+	_movingBases = true;
+	_game->popState();
+}
+
+void AllocateTrainingState::doAfterBaseChange()
+{
+	_movingBases = false;
+	if (_plusPressed)
+	{
+		_plusPressed = false;
+		_btnPlus->setPressed(true);
+	}
+	if (_selectedSort > 0)
+	{
+		_selectedSort = -1;
+		_lstSoldiers->scrollTo(0);
+		_cbxSortBy->setSelected(_selectedSort);
+		cbxSortByChange(nullptr);
+		return; // already doing initList
+	}
+	initList(0);
+}
+
+
+
+
 /**
  * Initializes all the elements in the Psi Training screen.
  * @param game Pointer to the core game.
  * @param base Pointer to the base to handle.
  */
-AllocateTrainingState::AllocateTrainingState(Base *base) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()), _doNotReset(false)
+AllocateTrainingState::AllocateTrainingState(Base* base) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()), _doNotReset(false), BaseSwitcher(base)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -301,9 +336,12 @@ void AllocateTrainingState::init()
 		_doNotReset = false;
 		return;
 	}
-
+	addNavigationButtons(this, _lstSoldiers);
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
-	initList(0);
+	if ( _movingBases)
+		doAfterBaseChange();
+	else
+		initList(0);
 }
 
 /**

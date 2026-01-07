@@ -49,12 +49,51 @@
 namespace OpenXcom
 {
 
+ bool SoldiersState::ignoreBase(Base* base) const
+{	// at least one soldier needed 
+	return base->getSoldiers()->size() <= 0;
+}
+
+
+ void SoldiersState::doBeforeBaseChange()
+ {
+	 if (_cbxSortBy)
+		_selectedSort = _cbxSortBy->getSelected();
+	 if (_cbxScreenActions)
+		_selectedAction = _cbxScreenActions->getSelected();
+	 _game->popState();
+ }
+
+ void SoldiersState::doAfterBaseChange()
+{
+	 _lstSoldiers->scrollTo(0);
+	 if (_selectedAction != -1)
+	 {
+		 if (_cbxScreenActions)
+			_cbxScreenActions->setSelected(_selectedAction);
+		 _selectedAction = -1;
+	 }
+	 if (_selectedSort != -1)
+	 {
+		 if (_cbxSortBy)
+		 {
+			 _cbxSortBy->setSelected(_selectedSort);
+			 cbxSortByChange(nullptr);
+			 _selectedSort = -1;
+			 return;
+		 }
+		 _selectedSort = -1;
+	 }
+	 initList(0);
+ }
+
+
 /**
  * Initializes all the elements in the Soldiers screen.
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL), _mainOffset(0)
+SoldiersState::SoldiersState(Base* base) : _base(base), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL), _mainOffset(0), BaseSwitcher(base)
 {
 	bool isPsiBtnVisible = Options::anytimePsiTraining && _base->getAvailablePsiLabs() > 0;
 	bool isTrnBtnVisible = _base->getAvailableTraining() > 0;
@@ -369,7 +408,15 @@ void SoldiersState::init()
 	_base->setInBattlescape(false);
 
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
-	initList(_lstSoldiers->getScroll());
+	
+	if (!_inited)
+	{
+		_inited = true;
+		addNavigationButtons(this, _lstSoldiers);
+		doAfterBaseChange();
+	}
+	else
+		initList(_lstSoldiers->getScroll());
 }
 
 /**

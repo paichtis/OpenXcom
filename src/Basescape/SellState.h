@@ -107,7 +107,7 @@ private:
 	virtual size_t getValidBasesCount() const;
 
 	/// Adds navigation buttons if there are multiple bases.
-	void addNavigationButtons();
+	void addNavigationButtons(InteractiveSurface* surface);
 	virtual void doBeforeBaseChange();
 	virtual void doAfterBaseChange();
 

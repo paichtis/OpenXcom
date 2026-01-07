@@ -47,6 +47,7 @@ enum SoldierGender : char;
 class State
 {
 	friend class Timer;
+	friend class BaseSwitcher;
 
 protected:
 	static Game *_game;
