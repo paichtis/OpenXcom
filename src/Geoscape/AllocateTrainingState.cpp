@@ -18,7 +18,6 @@
  */
 #include <sstream>
 #include <climits>
-#include "TrainingState.h"
 #include "AllocateTrainingState.h"
 #include "../Engine/Game.h"
 #include "../Engine/Language.h"
@@ -75,6 +74,10 @@ void AllocateTrainingState::doAfterBaseChange()
 	initList(0);
 }
 
+void AllocateTrainingState::doPush(Base* base)
+{
+	_game->pushState(new AllocateTrainingState(base));
+} 
 
 
 

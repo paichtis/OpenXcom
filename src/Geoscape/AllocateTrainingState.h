@@ -65,7 +65,7 @@ private:
 
 	void doBeforeBaseChange() override;
 	void doAfterBaseChange() override;
-	void doPush(Base* base) override { _game->pushState(new AllocateTrainingState(base)); } // nullptr because this combo has to be recalculated for each base
+	void doPush(Base* base) override;
 
 	bool ignoreBase(Base* base) const override;
 
