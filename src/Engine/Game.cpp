@@ -486,6 +486,25 @@ void Game::popState()
 	_init = false;
 }
 
+
+ State* Game::getCurrentState() const
+  {
+	if (_states.empty())
+		return nullptr;
+	return _states.back();
+   }
+
+/**
+*  Returns the state before the current one in the states list (the state we will go after the current one is popep)
+*/
+
+State* Game::previousState() const
+{
+	if (_states.size() <= 1)
+		return nullptr;
+	return *std::prev(_states.end(), 2);
+}
+
 /**
  * Sets a new saved game for the game to use.
  * @param save Pointer to the saved game.

@@ -108,6 +108,8 @@ private:
 	void think() override;
 	/// Updates the item list.
 	void updateList();
+	/// Purchases the selected items 
+	bool concludeTransaction();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Cancel button.

@@ -27,6 +27,7 @@
 #include "../Interface/Text.h"
 #include "../Mod/RuleInterface.h"
 #include "../Engine/Logger.h"
+#include "BasescapeState.h"
 //#include "../Menu/ErrorMessageState.h"
 
 #include <vector>
@@ -183,7 +184,6 @@ BaseSwitcher::~BaseSwitcher()
 
 void BaseSwitcher::doBeforeBaseChange()
 {
-	State::_game->popState(); // close current state before switching : minimal action needed when overloaded
 	return; 
 }
 
@@ -203,7 +203,31 @@ void BaseSwitcher::nextBase(int direction)
 	_moved = true;
 
 	doBeforeBaseChange();
+	State::_game->popState();
 	doPush((*State::_game->getSavedGame()->getBases())[nextBaseIndex(direction)]);
+}
+
+void BaseSwitcher::rebase(Base* base)
+{
+	if (base == _bsbase)
+		return;	// no need to move bases
+
+	doBeforeBaseChange(); // save settings
+	State::_game->popState();
+	doPush(base);
+}
+
+void BaseSwitcher::popAndRebase()
+{
+	State::_game->popState();
+	State* nextState = State::_game->getCurrentState();
+	BaseSwitcher* baseSw = dynamic_cast<BaseSwitcher*>(nextState);
+	if (baseSw)
+		baseSw->rebase(_bsbase);
+	else if (dynamic_cast<BasescapeState*>(nextState))
+	{
+		dynamic_cast<BasescapeState*>(nextState)->setBase(_bsbase);
+	}
 }
 
 } // namespace OpenXcom

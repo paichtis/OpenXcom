@@ -99,11 +99,16 @@ public:
 	virtual ~BaseSwitcher();
 	/// Moves to the next/previous base.
 	void nextBase(int direction);
+	/// moves to base
+	void rebase(Base* base);
 
 	/// Adds navigation buttons if there are multiple bases.
 	void addNavigationButtons(State* parent, InteractiveSurface* surface);
+	/// hide and show navigation buttons
 	void hideNavigationButtons() { toggleNavigationButtons(false); }
-	void showNavigationButtons() { toggleNavigationButtons(true); }	
+	void showNavigationButtons() { toggleNavigationButtons(true); }
+	void popAndRebase();
+
 };
 
 #define BASE_SWITCHER_HANDLERS(ImplementationClass) \

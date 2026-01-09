@@ -85,6 +85,10 @@ public:
 	void pushState(State *state);
 	/// Pops the last state from the state stack.
 	void popState();
+	/// gets the current state (last in the stack)
+	State* getCurrentState() const;
+	/// Returns the state before the current one if any 
+	State* previousState() const;
 	/// Gets the currently loaded language.
 	Language *getLanguage() const { return _lang; }
 	/// Gets the currently loaded saved game.

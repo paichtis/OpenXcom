@@ -52,7 +52,6 @@ void AllocateTrainingState::doBeforeBaseChange()
 	_plusPressed = _btnPlus->getPressed();
 	_selectedSort = _cbxSortBy->getSelected(); 
 	_movingBases = true;
-	_game->popState();
 }
 
 void AllocateTrainingState::doAfterBaseChange()
@@ -304,7 +303,7 @@ void AllocateTrainingState::cbxSortByChange(Action *action)
 void AllocateTrainingState::btnOkClick(Action *)
 {
 	// Note: statString updates not necessary
-	_game->popState();
+	popAndRebase(); // pops out current state and rebases the previous one if necessary
 }
 
 /**

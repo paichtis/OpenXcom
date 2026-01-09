@@ -61,7 +61,6 @@ namespace OpenXcom
 		_selectedSort = _cbxSortBy->getSelected();
 	 if (_cbxScreenActions)
 		_selectedAction = _cbxScreenActions->getSelected();
-	 _game->popState();
  }
 
  void SoldiersState::doAfterBaseChange()
@@ -634,7 +633,7 @@ void SoldiersState::moveSoldierDown(Action *action, unsigned int row, bool max)
  */
 void SoldiersState::btnOkClick(Action *)
 {
-	_game->popState();
+	popAndRebase();
 }
 
 /**

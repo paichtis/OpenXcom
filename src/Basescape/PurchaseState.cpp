@@ -61,7 +61,7 @@ void PurchaseState::doBeforeBaseChange()
 	_selectedCategoryBeforeMove = _cbxCategory->getSelected();
 	_searchTextBeforeMove = _btnQuickSearch->getText();
 	_scrollPosBeforeMove = _lstItems->getScroll();
-	btnOkClick(nullptr); // popstate and do the actual purchases
+	concludeTransaction();
 }
 
 void PurchaseState::doAfterBaseChange()
@@ -788,12 +788,12 @@ void PurchaseState::updateList()
 		}
 	}
 }
-
 /**
- * Purchases the selected items.
- * @param action Pointer to an action.
- */
-void PurchaseState::btnOkClick(Action *)
+ * Purchases the selected items then closes the state
+ * returns true on success	
+ */ 
+
+bool PurchaseState::concludeTransaction()
 {
 	if (_isReequiping)
 	{
@@ -810,7 +810,7 @@ void PurchaseState::btnOkClick(Action *)
 		{
 			RuleInterface* menuInterface = _game->getMod()->getInterface("buyMenu");
 			_game->pushState(new ErrorMessageState(errorMessage, _palette, menuInterface->getElement("errorMessage")->color, "BACK13.SCR", menuInterface->getElement("errorPalette")->color));
-			return;
+			return false;
 		}
 	}
 
@@ -902,8 +902,19 @@ void PurchaseState::btnOkClick(Action *)
 			}
 		}
 	}
-	_game->popState();
+	return true;
 }
+
+/**
+ * Purchases the selected items then closes the state
+ * @param action Pointer to an action.
+ */
+void PurchaseState::btnOkClick(Action*)
+{
+	if (concludeTransaction())
+		_game->popState();
+}
+
 
 /**
  * Returns to the previous screen.
