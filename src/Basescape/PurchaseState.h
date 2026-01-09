@@ -93,6 +93,7 @@ private:
 	void doBeforeBaseChange();
 	void doAfterBaseChange();
 	void doPush(Base* base);
+	virtual bool allowSwitching() const {return !_isReequiping; } 
 
 	BASE_SWITCHER_HANDLERS(PurchaseState);
 

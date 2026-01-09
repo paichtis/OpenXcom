@@ -75,17 +75,16 @@ void AllocateTrainingState::doAfterBaseChange()
 
 void AllocateTrainingState::doPush(Base* base)
 {
-	_game->pushState(new AllocateTrainingState(base));
+	_game->pushState(new AllocateTrainingState(base, _allowSwitching));
 } 
-
-
 
 /**
  * Initializes all the elements in the Psi Training screen.
  * @param game Pointer to the core game.
  * @param base Pointer to the base to handle.
  */
-AllocateTrainingState::AllocateTrainingState(Base* base) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()), _doNotReset(false), BaseSwitcher(base)
+AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()),
+																				_doNotReset(false), BaseSwitcher(base), _allowSwitching(allowSwitching)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);

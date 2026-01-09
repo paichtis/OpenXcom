@@ -651,7 +651,7 @@ void SoldiersState::btnPsiTrainingClick(Action *)
  */
 void SoldiersState::btnTrainingClick(Action *)
 {
-	_game->pushState(new AllocateTrainingState(_base));
+	_game->pushState(new AllocateTrainingState(_base, allowSwitching()));
 }
 
 /**
@@ -704,7 +704,7 @@ void SoldiersState::cbxScreenActionsChange(Action *action)
 	else if (selAction == "STR_TRAINING")
 	{
 		_cbxScreenActions->setSelected(0);
-		_game->pushState(new AllocateTrainingState(_base));
+		_game->pushState(new AllocateTrainingState(_base, allowSwitching()));
 	}
 	else if (selAction == "STR_TRANSFORMATIONS_OVERVIEW")
 	{

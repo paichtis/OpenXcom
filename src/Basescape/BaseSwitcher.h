@@ -29,34 +29,9 @@ class Text;
 class Base;
 class Action;
 
-
-
-/*
-class BaseSwitcherTraits
-{
-public:
-	static constexpr int BUTTON_WIDTH = 10;
-	static constexpr int BUTTON_HEIGHT = 8;
-	static constexpr int TEXT_WIDTH = 100;
-	static constexpr int TEXT_HEIGHT = 8;
-	static constexpr int SURFACE_WIDTH = 320;
-	static constexpr int SURFACE_HEIGHT = 8;
-	static constexpr int NEXT_BUTTON_X = 310;
-	static constexpr int NEXT_TEXT_X = 210;
-	static constexpr int PREV_BUTTON_X = 0;
-	static constexpr int PREV_TEXT_X = 10;
-
-	virtual bool ignoreBase(Base* base) const { return false; }
-	virtual size_t getValidBasesCount() const;
-	virtual void doBeforeBaseChange();
-	virtual void doAfterBaseChange();
-
-};
-*/
-
-//class Game;
 /**
  *	A virtual class ineherited by states that allow switching between bases
+ *  Manages the navigation buttons and logic 
  */
 
 class BaseSwitcher
@@ -83,13 +58,17 @@ class BaseSwitcher
 	/// Calculates the number of valid bases, provided to be used by getValidBasesCount() when ignoreBase() is overridden.
 	size_t calculateValidBaseCount() const;
 
-  protected:	
+  protected:
+	 /// virtual function fine tuning the class behavior
 	virtual bool ignoreBase(Base* base) const { return false; }
 	virtual size_t getValidBasesCount() const;
 	virtual void doBeforeBaseChange();
 	virtual void doAfterBaseChange();
-	/// pushes the new state for the selected base
+	virtual bool allowSwitching() const { return true; }
+	
+	/// pushes the new state for the selected base, needs to be defined by derived classes
 	virtual void doPush(Base* base) = 0;
+	/// pure virtual functions managing the button handlers, the BASE_SWITCHER_HANDLERS macro below will take care of that 
 	virtual ActionHandler getPrevButtonHandler() = 0;
 	virtual ActionHandler getNextButtonHandler() = 0;
 
@@ -107,10 +86,13 @@ public:
 	/// hide and show navigation buttons
 	void hideNavigationButtons() { toggleNavigationButtons(false); }
 	void showNavigationButtons() { toggleNavigationButtons(true); }
+	/// pops the current state and tries to rebase the previous state if necessary
 	void popAndRebase();
 
 };
 
+
+/// macro adding the navigation buttons and their handlers to the derived classes.
 #define BASE_SWITCHER_HANDLERS(ImplementationClass) \
 private: \
 	ActionHandler getPrevButtonHandler() { return (ActionHandler)(&ImplementationClass::btnPrevBaseClick); } \

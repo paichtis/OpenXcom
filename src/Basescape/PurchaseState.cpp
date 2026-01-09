@@ -422,11 +422,7 @@ void PurchaseState::init()
 
 	State::init();
 	touchComponentsRefresh();
-
-	if (!_isReequiping )
-	{
-		addNavigationButtons(this, _cbxCategory);
-	}
+	addNavigationButtons(this, _cbxCategory);
 }
 
 /**

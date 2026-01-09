@@ -62,7 +62,9 @@ private:
 	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
 	inline static bool _plusPressed = false;
 	inline static bool _movingBases = false;
+	bool _allowSwitching; 
 
+	bool allowSwitching() const override	{		return _allowSwitching;	}
 	void doBeforeBaseChange() override;
 	void doAfterBaseChange() override;
 	void doPush(Base* base) override;
@@ -77,7 +79,7 @@ private:
 	void initList(size_t scrl);
 public:
 	/// Creates the Psi Training state.
-	AllocateTrainingState(Base *base);
+	AllocateTrainingState(Base *base, bool allowSwitching = false);
 	/// Cleans up the Psi Training state.
 	~AllocateTrainingState();
 	/// Handler for changing the sort by combobox.

@@ -81,6 +81,7 @@ std::string BaseSwitcher::getBaseName(int direction) const
 	}
 }
 
+/// counts how many bases cans display this State.
 size_t BaseSwitcher::calculateValidBaseCount() const
 {
 	size_t count = 0;
@@ -94,11 +95,12 @@ size_t BaseSwitcher::calculateValidBaseCount() const
 	}
 	return count;
 }
-
+/// faster but not polymorfic version of calculateValidBaseCount().
 size_t BaseSwitcher::getValidBasesCount() const
 {
 	return State::_game->getSavedGame()->getBases()->size();
 }
+
 
 void BaseSwitcher::toggleNavigationButtons(bool show)
 {
@@ -118,7 +120,7 @@ void BaseSwitcher::addNavigationButtons(State* parent, InteractiveSurface *surfa
 {
 	_moved = false;
 	_validBasesCount = calculateValidBaseCount(); 
-	if (_validBasesCount <= 1)
+	if (_validBasesCount <= 1 || !allowSwitching())
 		return;
 	
 	_nextButton = new TextButton(10, 8, 310, 0);
@@ -158,7 +160,6 @@ void BaseSwitcher::addNavigationButtons(State* parent, InteractiveSurface *surfa
 
 /// Creates a new BaseSwitcher linked to a parent state and a base.
 BaseSwitcher::BaseSwitcher(Base* base)
-//	: InteractiveSurface(320, 8), _base(base), _parent(parent)
 {
 	_bsbase = base;
 	_baseIndex = getBaseIndex(base);
@@ -184,7 +185,7 @@ BaseSwitcher::~BaseSwitcher()
 
 void BaseSwitcher::doBeforeBaseChange()
 {
-	return; 
+	return; // nothing but herited classes override as needed
 }
 
 void BaseSwitcher::doAfterBaseChange()
@@ -209,8 +210,8 @@ void BaseSwitcher::nextBase(int direction)
 
 void BaseSwitcher::rebase(Base* base)
 {
-	if (base == _bsbase)
-		return;	// no need to move bases
+	if (base == _bsbase || !allowSwitching())
+		return;	// no need or not allowed to move bases
 
 	doBeforeBaseChange(); // save settings
 	State::_game->popState();
