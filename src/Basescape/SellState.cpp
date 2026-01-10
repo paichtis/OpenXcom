@@ -686,7 +686,7 @@ void SellState::updateList()
 	_rows.clear();
 
 	size_t selCategory = _cbxCategory->getSelected();
-	const std::string selectedCategory = _cbxCategory->getSelectedCategory();
+	const std::string selectedCategory = _cbxCategory->getSelectedOption();
 	bool categoryFilterEnabled = (selectedCategory != "STR_ALL_ITEMS");
 	bool categoryUnassigned = (selectedCategory == "STR_UNASSIGNED");
 	bool categoryHidden = (selectedCategory == "STR_FILTER_HIDDEN");

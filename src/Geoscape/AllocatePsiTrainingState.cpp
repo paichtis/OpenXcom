@@ -43,12 +43,66 @@
 namespace OpenXcom
 {
 
+
+	/// -- start of base switching related members and methods --
+
+	#if 0
+inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
+inline static bool _plusPressed = false;
+inline static bool _movingBases = false;
+bool _allowSwitching;
+inline static bool _lastSortShiftPressed = false;
+#endif //0
+
+bool AllocatePsiTrainingState::BaseSwitcherReverse() const
+{
+	return _selectedSort != -1 && _lastSortShiftPressed;
+}
+
+void AllocatePsiTrainingState::doBeforeBaseChange()
+{
+	_plusPressed = _btnPlus->getPressed();
+	_selectedSort = _cbxSortBy->getSelected();
+	_movingBases = true;
+}
+void AllocatePsiTrainingState::doAfterBaseChange()
+{
+	_movingBases = false;
+	if (_plusPressed)
+	{
+		_plusPressed = false;
+		_btnPlus->setPressed(true);
+	}
+	if (_selectedSort > 0)
+	{
+		_lstSoldiers->scrollTo(0);
+		_cbxSortBy->setSelected(_selectedSort);
+		cbxSortByChange(nullptr);
+		_selectedSort = -1;
+		return; // already doing initList
+	}
+	initList(0);
+}
+
+void AllocatePsiTrainingState::doPush(Base* base)
+{
+	_game->pushState(new AllocatePsiTrainingState(base, _allowSwitching));
+}
+
+bool AllocatePsiTrainingState::ignoreBase(Base* base) const
+{	// ignore bases with no soldiers and no psy training ability
+	return base->getSoldiers()->size() <= 0 || base->getAvailablePsiLabs() <= 0;
+}
+
+
+
 /**
  * Initializes all the elements in the Psi Training screen.
  * @param game Pointer to the core game.
  * @param base Pointer to the base to handle.
  */
-AllocatePsiTrainingState::AllocatePsiTrainingState(Base *base) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()), _doNotReset(false)
+AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitching) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()),
+																					  _doNotReset(false), _allowSwitching(allowSwitching), BaseSwitcher(base)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -258,7 +312,7 @@ void AllocatePsiTrainingState::btnOkClick(Action *)
 	{
 		soldier->calcStatString(_game->getMod()->getStatStrings(), psiStrengthEval);
 	}
-	_game->popState();
+	popStateAndRebase();
 }
 
 /**
@@ -293,9 +347,12 @@ void AllocatePsiTrainingState::init()
 		_doNotReset = false;
 		return;
 	}
-
+	addNavigationButtons(this, _lstSoldiers);
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
-	initList(0);
+	if (_movingBases)
+		doAfterBaseChange();
+	else
+		initList(0);
 }
 
 /**

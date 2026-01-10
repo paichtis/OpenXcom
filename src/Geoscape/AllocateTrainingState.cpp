@@ -64,13 +64,18 @@ void AllocateTrainingState::doAfterBaseChange()
 	}
 	if (_selectedSort > 0)
 	{
-		_selectedSort = -1;
 		_lstSoldiers->scrollTo(0);
 		_cbxSortBy->setSelected(_selectedSort);
 		cbxSortByChange(nullptr);
+		_selectedSort = -1;
 		return; // already doing initList
 	}
 	initList(0);
+}
+
+bool AllocateTrainingState::BaseSwitcherReverse() const
+{
+	return _selectedSort != -1 && _lastSortShiftPressed;
 }
 
 void AllocateTrainingState::doPush(Base* base)
@@ -270,10 +275,14 @@ void AllocateTrainingState::cbxSortByChange(Action *action)
 		{
 			std::stable_sort(_base->getSoldiers()->begin(), _base->getSoldiers()->end(), *compFunc);
 		}
-		if (_game->isShiftPressed())
+		if (_game->isShiftPressed() || BaseSwitcherReverse())
 		{
 			std::reverse(_base->getSoldiers()->begin(), _base->getSoldiers()->end());
+			if (_game->isShiftPressed())
+				_lastSortShiftPressed = true; // to restore this when switching bases
 		}
+		else
+			_lastSortShiftPressed = false;
 	}
 	else
 	{
@@ -302,7 +311,7 @@ void AllocateTrainingState::cbxSortByChange(Action *action)
 void AllocateTrainingState::btnOkClick(Action *)
 {
 	// Note: statString updates not necessary
-	popAndRebase(); // pops out current state and rebases the previous one if necessary
+	popStateAndRebase(); // pops out current state and rebases the previous one if necessary
 }
 
 /**

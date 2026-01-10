@@ -45,6 +45,7 @@
 #include "../Savegame/SavedBattleGame.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
+#include "CategoryComboBox.h"
 
 namespace OpenXcom
 {
@@ -60,17 +61,17 @@ namespace OpenXcom
 	 if (_cbxSortBy)
 		_selectedSort = _cbxSortBy->getSelected();
 	 if (_cbxScreenActions)
-		_selectedAction = _cbxScreenActions->getSelected();
+		_selectedAction = _cbxScreenActions->getSelectedOption();
  }
 
  void SoldiersState::doAfterBaseChange()
 {
 	 _lstSoldiers->scrollTo(0);
-	 if (_selectedAction != -1)
+	 if (!_selectedAction.empty())
 	 {
 		 if (_cbxScreenActions)
-			_cbxScreenActions->setSelected(_selectedAction);
-		 _selectedAction = -1;
+			_cbxScreenActions->setSelectedByString(_selectedAction);
+		 _selectedAction = "";
 	 }
 	 if (_selectedSort != -1)
 	 {
@@ -86,6 +87,10 @@ namespace OpenXcom
 	 initList(0);
  }
 
+ bool SoldiersState::BaseSwitcherReverse() const
+ {
+	 return _selectedSort != -1 && _lastSortShiftPressed; 
+ }
 
 /**
  * Initializes all the elements in the Soldiers screen.
@@ -119,7 +124,7 @@ SoldiersState::SoldiersState(Base* base) : _base(base), _origSoldierOrder(*_base
 	}
 	if (showCombobox)
 	{
-		_cbxScreenActions = new ComboBox(this, 148, 16, 8, 176, true);
+		_cbxScreenActions = new CategoryComboBox(this, 148, 16, 8, 176, true);
 		_btnMemorial = _btnPsiTraining = _btnTraining = nullptr;
 	}
 	else
@@ -169,7 +174,6 @@ SoldiersState::SoldiersState(Base* base) : _base(base), _origSoldierOrder(*_base
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnInventoryClick, Options::keyBattleInventory);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnTransformationsOverviewClick, SDLK_t);
 
-	_availableOptions.clear();
 	if (!showCombobox)
 	{
 		_btnPsiTraining->setText(tr("STR_PSI_TRAINING"));
@@ -185,26 +189,26 @@ SoldiersState::SoldiersState(Base* base) : _base(base), _origSoldierOrder(*_base
 	}
 	else
 	{
-		_availableOptions.push_back("STR_SOLDIER_INFO");
-		_availableOptions.push_back("STR_MEMORIAL");
-		_availableOptions.push_back("STR_INVENTORY");
+		_cbxScreenActions->push_back("STR_SOLDIER_INFO");
+		_cbxScreenActions->push_back("STR_MEMORIAL");
+		_cbxScreenActions->push_back("STR_INVENTORY");
 
 		if (isPsiBtnVisible)
-			_availableOptions.push_back("STR_PSI_TRAINING");
+			_cbxScreenActions->push_back("STR_PSI_TRAINING");
 
 		if (isTrnBtnVisible)
-			_availableOptions.push_back("STR_TRAINING");
+			_cbxScreenActions->push_back("STR_TRAINING");
 
 		if (isTransformationAvailable)
 		{
-			_mainOffset = _availableOptions.size();
-			_availableOptions.push_back("STR_TRANSFORMATIONS_OVERVIEW");
+			_mainOffset = _cbxScreenActions->size();
+			_cbxScreenActions->push_back("STR_TRANSFORMATIONS_OVERVIEW");
 		}
 
 		bool refreshDeadSoldierStats = false;
 		for (const auto* transformationRule : availableTransformations)
 		{
-			_availableOptions.push_back(transformationRule->getName());
+			_cbxScreenActions->push_back(transformationRule->getName());
 			if (transformationRule->isAllowingDeadSoldiers())
 			{
 				refreshDeadSoldierStats = true;
@@ -218,7 +222,7 @@ SoldiersState::SoldiersState(Base* base) : _base(base), _origSoldierOrder(*_base
 			}
 		}
 
-		_cbxScreenActions->setOptions(_availableOptions, true);
+		_cbxScreenActions->setOptions();
 		_cbxScreenActions->setSelected(0);
 		_cbxScreenActions->onChange((ActionHandler)&SoldiersState::cbxScreenActionsChange);
 	}
@@ -368,10 +372,14 @@ void SoldiersState::cbxSortByChange(Action *action)
 			{
 				std::stable_sort(_base->getSoldiers()->begin(), _base->getSoldiers()->end(), *compFunc);
 			}
-			if (_game->isShiftPressed())
-			{
+			if (_game->isShiftPressed() || BaseSwitcherReverse())
+			{				
 				std::reverse(_base->getSoldiers()->begin(), _base->getSoldiers()->end());
+				if (_game->isShiftPressed())
+					_lastSortShiftPressed = true; // to restore this when switching bases
 			}
+			else
+				_lastSortShiftPressed = false;
 		}
 	}
 	else
@@ -412,7 +420,7 @@ void SoldiersState::init()
 	{
 		_inited = true;
 		addNavigationButtons(this, _lstSoldiers);
-		doAfterBaseChange();
+//		doAfterBaseChange(); already done in addNavigationButtons
 	}
 	else
 		initList(_lstSoldiers->getScroll());
@@ -429,9 +437,9 @@ void SoldiersState::initList(size_t scrl)
 	_filteredIndicesOfSoldiers.clear();
 
 	std::string selAction = "STR_SOLDIER_INFO";
-	if (!_availableOptions.empty())
+	if (_cbxScreenActions)
 	{
-		selAction = _availableOptions.at(_cbxScreenActions->getSelected());
+		selAction = _cbxScreenActions->getSelectedOption();
 	}
 
 	int offset = 0;
@@ -633,7 +641,7 @@ void SoldiersState::moveSoldierDown(Action *action, unsigned int row, bool max)
  */
 void SoldiersState::btnOkClick(Action *)
 {
-	popAndRebase();
+	popStateAndRebase();
 }
 
 /**
@@ -642,7 +650,7 @@ void SoldiersState::btnOkClick(Action *)
  */
 void SoldiersState::btnPsiTrainingClick(Action *)
 {
-	_game->pushState(new AllocatePsiTrainingState(_base));
+	_game->pushState(new AllocatePsiTrainingState(_base, allowSwitching()));
 }
 
 /**
@@ -684,7 +692,7 @@ void SoldiersState::btnTransformationsOverviewClick(Action *)
  */
 void SoldiersState::cbxScreenActionsChange(Action *action)
 {
-	const std::string selAction = _availableOptions.at(_cbxScreenActions->getSelected());
+	const std::string selAction = _cbxScreenActions->getSelectedOption();
 
 	if (selAction == "STR_MEMORIAL")
 	{
@@ -699,7 +707,7 @@ void SoldiersState::cbxScreenActionsChange(Action *action)
 	else if (selAction == "STR_PSI_TRAINING")
 	{
 		_cbxScreenActions->setSelected(0);
-		_game->pushState(new AllocatePsiTrainingState(_base));
+		_game->pushState(new AllocatePsiTrainingState(_base, allowSwitching()));
 	}
 	else if (selAction == "STR_TRAINING")
 	{
@@ -738,7 +746,7 @@ void SoldiersState::btnInventoryClick(Action *)
 		bgen.runInventory(0);
 
 		// pre-select the soldier under the mouse cursor (if possible)
-		if (_availableOptions.empty() || _cbxScreenActions->getSelected() == 0)
+		if (!_cbxScreenActions || _cbxScreenActions->getSelected() == 0)
 		{
 			size_t idx = _lstSoldiers->getSelectedRow();
 			if (idx < _base->getSoldiers()->size())
@@ -773,9 +781,9 @@ void SoldiersState::lstSoldiersClick(Action *action)
 	}
 
 	std::string selAction = "STR_SOLDIER_INFO";
-	if (!_availableOptions.empty())
+	if (_cbxScreenActions)
 	{
-		selAction = _availableOptions.at(_cbxScreenActions->getSelected());
+		selAction = _cbxScreenActions->getSelectedOption();
 	}
 	if (selAction == "STR_SOLDIER_INFO")
 	{

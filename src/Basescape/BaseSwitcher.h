@@ -87,7 +87,7 @@ public:
 	void hideNavigationButtons() { toggleNavigationButtons(false); }
 	void showNavigationButtons() { toggleNavigationButtons(true); }
 	/// pops the current state and tries to rebase the previous state if necessary
-	void popAndRebase();
+	void popStateAndRebase();
 
 };
 

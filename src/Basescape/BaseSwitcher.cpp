@@ -218,7 +218,7 @@ void BaseSwitcher::rebase(Base* base)
 	doPush(base);
 }
 
-void BaseSwitcher::popAndRebase()
+void BaseSwitcher::popStateAndRebase()
 {
 	State::_game->popState();
 	State* nextState = State::_game->getCurrentState();

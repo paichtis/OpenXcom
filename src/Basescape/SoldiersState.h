@@ -30,6 +30,7 @@ class Window;
 class Text;
 class TextList;
 class ComboBox;
+class CategoryComboBox;
 class Base;
 class Soldier;
 struct SortFunctor;
@@ -44,14 +45,15 @@ private:
 	TextButton *_btnOk, *_btnPsiTraining, *_btnTraining, *_btnMemorial;
 	Window *_window;
 	Text *_txtTitle, *_txtName, *_txtRank, *_txtCraft;
-	ComboBox *_cbxSortBy, *_cbxScreenActions;
+	ComboBox* _cbxSortBy;
+	CategoryComboBox	*_cbxScreenActions;
 	TextList *_lstSoldiers;
 	Base *_base;
 	std::vector<Soldier *> _origSoldierOrder, _filteredListOfSoldiers;
 	std::vector<int> _filteredIndicesOfSoldiers;
 	std::vector<SortFunctor *> _sortFunctors;
 	getStatFn_t _dynGetter;
-	std::vector<std::string> _availableOptions;
+//	std::vector<std::string> _availableOptions;
 	size_t _mainOffset;
 	///initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
@@ -59,14 +61,17 @@ private:
 	/// -- start of base switching related members and methods --
 
 	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
-	inline static size_t _selectedAction = -1;
+	inline static std::string _selectedAction = "";
 	bool _inited = false;
+	inline static bool _lastSortShiftPressed = false;
+	bool BaseSwitcherReverse() const;
 
 	void doBeforeBaseChange() override; 
 	void doAfterBaseChange() override;
 	void doPush(Base* base) override { _game->pushState(new SoldiersState(base));  } // nullptr because this combo has to be recalculated for each base
 
     bool ignoreBase(Base* base) const override;
+
 
 	BASE_SWITCHER_HANDLERS(SoldiersState);
 

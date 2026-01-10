@@ -18,6 +18,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../Engine/State.h"
+#include "../Basescape/BaseSwitcher.h"
 #include <vector>
 
 namespace OpenXcom
@@ -37,7 +38,7 @@ struct SortFunctor;
  * Screen shown monthly to allow changing
  * soldiers currently in psi training.
  */
-class AllocatePsiTrainingState : public State
+class AllocatePsiTrainingState : public State, public BaseSwitcher
 {
 private:
 	TextButton *_btnOk;
@@ -56,11 +57,33 @@ private:
 	std::vector<SortFunctor *> _sortFunctorsPlus;
 	bool _doNotReset;
 
+	/// -- start of base switching related members and methods --
+
+	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
+	inline static bool _plusPressed = false;
+	inline static bool _movingBases = false;
+	bool _allowSwitching;
+	inline static bool _lastSortShiftPressed = false;
+	bool BaseSwitcherReverse() const;
+
+	bool allowSwitching() const override { return _allowSwitching; }
+	void doBeforeBaseChange() override;
+	void doAfterBaseChange() override;
+	void doPush(Base* base) override;
+
+	bool ignoreBase(Base* base) const override;
+
+	BASE_SWITCHER_HANDLERS(AllocatePsiTrainingState);
+
+	/// -- end of base switching related members and methods --
+
+
+
 	///initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
 public:
 	/// Creates the Psi Training state.
-	AllocatePsiTrainingState(Base *base);
+	AllocatePsiTrainingState(Base *base, bool allowSwitching = false);
 	/// Cleans up the Psi Training state.
 	~AllocatePsiTrainingState();
 	/// Handler for changing the sort by combobox.

@@ -62,7 +62,10 @@ private:
 	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
 	inline static bool _plusPressed = false;
 	inline static bool _movingBases = false;
-	bool _allowSwitching; 
+	bool _allowSwitching;
+	inline static bool _lastSortShiftPressed = false;
+	bool BaseSwitcherReverse() const;
+
 
 	bool allowSwitching() const override	{		return _allowSwitching;	}
 	void doBeforeBaseChange() override;
