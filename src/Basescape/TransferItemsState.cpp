@@ -412,7 +412,7 @@ void TransferItemsState::updateList()
 	_rows.clear();
 
 	size_t selCategory = _cbxCategory->getSelected();
-	const std::string cat = _cbxCategory->getSelectedCategory();
+	const std::string cat = _cbxCategory->getSelectedOption();
 	bool allItems = (cat == "STR_ALL_ITEMS");
 	bool missingItems = (cat == "STR_FILTER_MISSING");
 	bool onlyItemsAtDestination = (cat == "STR_ITEMS_AT_DESTINATION");
