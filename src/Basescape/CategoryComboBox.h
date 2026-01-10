@@ -20,6 +20,7 @@
 
 #include "../Interface/ComboBox.h"
 #include <vector>
+#include <string_view>
 
 namespace OpenXcom
 {
@@ -34,18 +35,25 @@ class CategoryComboBox : public ComboBox
 	size_t _vanillaSize;
 	bool _initialized = false;
 
+	int findString(std::string_view cat)
+	{
+		for (size_t i = 0; i< _cats.size(); ++i)
+		{
+			if (_cats[i] == cat)
+				return i;
+		}
+		return -1; // not found
+	}
+
   public:
 	CategoryComboBox(State* state, int width, int height, int x = 0, int y = 0, bool popupAboveButton = false)
-		: ComboBox(state, width, height, x, y, popupAboveButton), _vanillaSize(0) {}
+		: ComboBox(state, width, height, x, y, popupAboveButton), _vanillaSize(0) { _cats.clear(); }
 
-	inline void push_back(const std::string& cat) { _cats.push_back(cat); }
-	inline bool pushIfUnique(const std::string& cat)
+	inline void push_back(std::string cat) { _cats.push_back(cat); }
+	inline bool pushIfUnique(std::string cat)
 	{
-		for (const auto& c : _cats)
-		{
-			if (c == cat)
-				return false;
-		}
+		if (findString(cat) >= 0)
+			return false; // already in, don't add
 		_cats.push_back(cat);
 		return true;
 	}
@@ -57,16 +65,24 @@ class CategoryComboBox : public ComboBox
 	}
 	inline void setVanillaCategories(size_t num = -1) { _vanillaSize = (num >= 0) ? num : _cats.size(); }
 	inline bool isVanillaCategory(size_t index) const { return index < _vanillaSize; }
+	size_t size() const { return _cats.size(); }	
 
 	inline size_t getSize() const { return _cats.size(); }
-	inline void setOptions()
+
+	/// sets the ComboBox's options 
+	inline void setOptions(bool translate = true)
 	{
-		ComboBox::setOptions(_cats, true);
+		ComboBox::setOptions(_cats, translate);
 		_initialized = true;
 	}
 
-	inline std::string getSelectedCategory() const { return _cats[ComboBox::getSelected()]; }
-	inline bool isSelected(std::string cat) const { return getSelectedCategory() == cat; }
+	inline std::string getSelectedOption() const { return _cats[ComboBox::getSelected()]; }
+	inline bool isSelected(std::string cat) const { return getSelectedOption() == cat; }
+	inline void setSelectedByString(std::string_view cat)
+	{
+		int sel = findString(cat);
+		setSelected(sel > 0 ? sel : 0);
+	}
 
   private: // masked methods for encapsulation
 	void setOptions(const std::vector<std::string>& options, bool translate) { ComboBox::setOptions(options, translate); }
