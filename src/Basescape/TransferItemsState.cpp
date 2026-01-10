@@ -451,9 +451,14 @@ void TransferItemsState::updateList()
 				continue;
 			}
 		}
-//		else if (selCategory >= _vanillaCategories)
-
-		else if (_cbxCategory->isVanillaCategory(selCategory))
+		else if (missingItems)
+		{
+			if (!_parent || _items[i].type != TRANSFER_ITEM || !_parent->isMissing((const RuleItem*)_items[i].rule))
+			{
+				continue;
+			}
+		}
+		else if (_cbxCategory->isVanillaCategory(selCategory)) // other 'vanilla' categories
 		{
 			if (categoryUnassigned && _items[i].type == TRANSFER_ITEM)
 			{
@@ -464,13 +469,6 @@ void TransferItemsState::updateList()
 				}
 			}
 			else if (!specialCategory && !belongsToCategory(i, cat))
-			{
-				continue;
-			}
-		}
-		else if (missingItems && _parent != nullptr)
-		{
-			if (_items[i].type != TRANSFER_ITEM || !_parent->isMissing((RuleItem*)_items[i].rule))
 			{
 				continue;
 			}
