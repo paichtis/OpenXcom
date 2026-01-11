@@ -2159,8 +2159,13 @@ void GeoscapeState::time1Hour()
 				auto* ammo = xcraft->rearm();
 				if (ammo)
 				{
-					 // OXCE(paichtis): Rearm popup 
-					 CannotReequipState* cannotReequipState = CannotReequipState::create(xbase, xcraft->getName(_game->getLanguage()), true);
+					 // OXCE(paichtis): Rearm popup
+					std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
+										  .arg(tr(ammo->getType()))
+										  .arg(xcraft->getName(_game->getLanguage()))
+										  .arg(xbase->getName());
+
+					 CannotReequipState* cannotReequipState = CannotReequipState::create(xbase, xcraft->getName(_game->getLanguage()), msg, false);
 					 cannotReequipState->addMissingItem(ammo, xcraft->getMissingClipsCount());
 					_game->pushState(cannotReequipState);
 				}

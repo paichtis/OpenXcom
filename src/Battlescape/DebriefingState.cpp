@@ -2206,7 +2206,7 @@ void DebriefingState::prepareDebriefing()
 void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCanBeDestroyed)
 {
 	auto craftItemsCopy = *craft->getItems()->getContents();
-	 _cannotReequipState = CannotReequipState::create(base, craft->getName(_game->getLanguage()));
+	_cannotReequipState = CannotReequipState::create(base, craft->getName(_game->getLanguage()), tr("STR_NOT_ENOUGH_EQUIPMENT_TO_FULLY_RE_EQUIP_SQUAD"));
 	for (const auto& pair : craftItemsCopy)
 	{
 		int qty = base->getStorageItems()->getItem(pair.first);

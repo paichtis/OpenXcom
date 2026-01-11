@@ -90,11 +90,11 @@ bool CannotReequipState::checkAvailability() const
  * @param missingItems List of items still needed for reequip.
  * @param base Relevant xcom base.
  */
-//CannotReequipState::CannotReequipState(std::vector<ReequipStat>& missingItems, Base* base, bool isRearm) : _base(base), _isRearm(isRearm)
-CannotReequipState::CannotReequipState(Base* base, std::string craftName, bool isRearm) : _base(base), _isRearm(isRearm), _craftName(craftName),
+
+CannotReequipState::CannotReequipState(Base* base, std::string craftName, std::string message, bool bigTitle) : _base(base), _craftName(craftName),
 	 _delayedInitDone(false), _btnOk(nullptr), _btnManufacture(nullptr), _btnPurchase(nullptr), _btnTransfert(nullptr),
 	_window(nullptr), _txtTitle(nullptr), _txtItem(nullptr), _txtQuantity(nullptr), _txtCraft(nullptr), _lstItems(nullptr),
-	_missingItemsMap()
+	_missingItemsMap(), _message(message), _bigTitle(bigTitle)
 {
 	_missingItemsMap.clear(); // extra safety...
 }
@@ -151,6 +151,10 @@ void CannotReequipState::delayedInit()
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&CannotReequipState::btnOkClick, Options::keyCancel);
 
+	_txtTitle->setText(_message);
+	if (_bigTitle)
+		_txtTitle->setBig();
+#if 0
 	if (_isRearm)
 	{
 		std::string objectName = (_missingItemsMap.size() >= 1) ? tr(_missingItemsMap.begin()->first->getType()) : tr("STR_ERROR");
@@ -165,6 +169,7 @@ void CannotReequipState::delayedInit()
 		_txtTitle->setText(tr("STR_NOT_ENOUGH_EQUIPMENT_TO_FULLY_RE_EQUIP_SQUAD"));
 		_txtTitle->setBig();
 	}
+#endif // 0
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setWordWrap(true);
 
@@ -233,14 +238,19 @@ bool CannotReequipState::deleteIfEmpty()
 
 /**
  * @brief Pushes the state to the state manager if there are missing items, deletes it otherwise.
+ * @param popCurrentState shall we pop the current state before pushing the new one ?
  * @return true if the state was pushed, false if deleted. 
  */
 
-bool CannotReequipState::pushOrDeleteIfEmpty()
+bool CannotReequipState::pushOrDeleteIfEmpty(bool popCurrentState)
 {
 	if (deleteIfEmpty())
 	{
 		return false;
+	}
+	if (popCurrentState)
+	{
+		_game->popState();
 	}
 	_game->pushState(this);
 	return true;

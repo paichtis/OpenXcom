@@ -34,6 +34,7 @@
 #include "../Engine/Options.h"
 #include "../Engine/Unicode.h"
 #include "../Mod/RuleInterface.h"
+#include "../Battlescape/CannotReequipState.h"
 #include <algorithm>
 #include <climits>
 #include <cmath>
@@ -293,15 +294,21 @@ void PlaceFacilityState::viewClick(Action *)
 		}
 		else
 		{
-			for (const auto& item: _rule->getBuildCostItems())
+			if (!_rule->getBuildCostItems().empty())
 			{
-				int needed = (item.second.first - refundItemsTemp[item.first]) - _base->getStorageItems()->getItem(item.first);
-				if (needed > 0)
+				
+				CannotReequipState* cannotReequipState = CannotReequipState::create(_base, "", tr("STR_NOT_ENOUGH_ITEMS_FOR_FACILITY"), false);
+				for (const auto& item : _rule->getBuildCostItems())
 				{
-					_game->popState();
-					_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_ITEMS").arg(tr(item.first)).arg(needed), _palette, _game->getMod()->getInterface("placeFacility")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("placeFacility")->getElement("errorPalette")->color));
-					return;
+					int needed = (item.second.first - refundItemsTemp[item.first]) - _base->getStorageItems()->getItem(item.first);
+					if (needed > 0)
+					{
+						RuleItem* rule = _game->getMod()->getItem(item.first);
+						cannotReequipState->addMissingItem(rule, needed);
+					}
 				}
+				if (cannotReequipState->pushOrDeleteIfEmpty(true))
+					return;
 			}
 			// Remove any facilities we're building over
 			double reducedBuildTime = 0.0;

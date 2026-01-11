@@ -1086,7 +1086,7 @@ void CraftEquipmentState::loadGlobalLoadout(int index, bool onlyAddItems)
 
 	// lastly check and report what's missing
 	std::string craftName = c->getName(_game->getLanguage());
-	CannotReequipState* cannotReequipState = CannotReequipState::create(_base, craftName);
+	CannotReequipState* cannotReequipState = CannotReequipState::create(_base, craftName, tr("STR_NOT_ENOUGH_EQUIPMENT_TO_FULLY_RE_EQUIP_SQUAD"));
 	
 	for (const auto& templateItem : *tmpl->getContents())
 	{

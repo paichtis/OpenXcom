@@ -60,8 +60,9 @@ class CannotReequipState : public State
 	using MissingItemsMap = std::map<const RuleItem*, int, CannotReequipState::RuleComparator>;
 	MissingItemsMap _missingItemsMap;
 	Base *_base;
-	bool _isRearm;
+	bool _bigTitle;
 	std::string _craftName;
+	std::string _message; 
 
 	TextButton *_btnOk, *_btnManufacture, *_btnPurchase, *_btnTransfert;
 	Window *_window;
@@ -69,20 +70,21 @@ class CannotReequipState : public State
 	TextList *_lstItems;
 	bool _delayedInitDone = false;
 
+
 	/// Creates the Cannot Reequip state. is private to force use of create() and therefore new/delete.
-	CannotReequipState(Base* base, std::string craftName, bool isRearm = false);
+	CannotReequipState(Base* base, std::string craftName, std::string message, bool bigTitle = true);
 
 	public:
 	/// Creates the Cannot Reequip state.
-	 static CannotReequipState* create(Base* base, std::string craftName, bool isRearm = false)
+	  static CannotReequipState* create(Base* base, std::string craftName, std::string message, bool bigTitle = true)
 	{
-		  return new CannotReequipState(base, craftName, isRearm);
+		  return new CannotReequipState(base, craftName, message, bigTitle);
 	}
 	/// Checks if there are no missing items, deletes the state if so.
 	bool deleteIfEmpty();
 
 	/// Pushes the state to the state manager if there are missing items, deletes it otherwise.
-	bool pushOrDeleteIfEmpty();
+	bool pushOrDeleteIfEmpty(bool popCurrentState = false);
 
 	/// Cleans up the Cannot Reequip state.
 	virtual ~CannotReequipState();
