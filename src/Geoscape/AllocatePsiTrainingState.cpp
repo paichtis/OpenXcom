@@ -62,6 +62,7 @@ bool AllocatePsiTrainingState::BaseSwitcherReverse() const
 void AllocatePsiTrainingState::doBeforeBaseChange()
 {
 	_plusPressed = _btnPlus->getPressed();
+	_minusPressed = _btnMinus->getPressed();
 	_selectedSort = _cbxSortBy->getSelected();
 	_movingBases = true;
 }
@@ -72,6 +73,11 @@ void AllocatePsiTrainingState::doAfterBaseChange()
 	{
 		_plusPressed = false;
 		_btnPlus->setPressed(true);
+	}
+	if (_minusPressed)
+	{
+		_minusPressed = false;
+		_btnMinus->setPressed(true);
 	}
 	if (_selectedSort > 0)
 	{
@@ -116,6 +122,7 @@ AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitchi
 	_lstSoldiers = new TextList(290, 112, 8, 52);
 	_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
 	_btnPlus = new ToggleTextButton(18, 16, 294, 8);
+	_btnMinus = new ToggleTextButton(18, 16, 274, 8);
 
 	// Set palette
 	setInterface("allocatePsi");
@@ -131,6 +138,7 @@ AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitchi
 	add(_lstSoldiers, "list", "allocatePsi");
 	add(_cbxSortBy, "button", "allocatePsi");
 	add(_btnPlus, "button", "allocatePsi");
+	add(_btnMinus, "button", "allocatePsi");
 
 	centerAllSurfaces();
 
@@ -154,6 +162,9 @@ AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitchi
 	{
 		_btnPlus->onMouseClick((ActionHandler)&AllocatePsiTrainingState::btnPlusClick, 0);
 	}
+	_btnMinus->setText("-");
+	_btnMinus->onMouseClick((ActionHandler)&AllocatePsiTrainingState::btnMinusClick, 0);
+
 
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
@@ -334,6 +345,15 @@ void AllocatePsiTrainingState::btnPlusClick(Action *action)
 }
 
 /**
+* Toggles visibility of fully trained soldiers.
+*/
+void AllocatePsiTrainingState::btnMinusClick(Action* action)
+{
+	initList(0);
+}
+
+
+/**
  * Updates the soldiers list
  * after going to other screens.
  */
@@ -368,7 +388,11 @@ void AllocatePsiTrainingState::initList(size_t scrl)
 
 		std::ostringstream ssStr;
 		std::ostringstream ssSkl;
-		_soldiers.push_back(soldier);
+
+		if (_btnMinus->getPressed() && soldier->isFullyPsiTrained())  // ignore fully trained soldiers if minus button is pressed
+			continue;
+
+		//		_soldiers.push_back(soldier); NOT USED ANYWHERE
 		if (soldier->getCurrentStats()->psiSkill > 0 || (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())))
 		{
 			ssStr << "   " << stats->psiStrength;

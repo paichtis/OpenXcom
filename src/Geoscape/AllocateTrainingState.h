@@ -42,7 +42,7 @@ class AllocateTrainingState : public State, public BaseSwitcher
 {
 private:
 	TextButton *_btnOk;
-	ToggleTextButton *_btnPlus;
+	ToggleTextButton *_btnPlus, *_btnMinus;
 	Window *_window;
 	Text *_txtTitle, *_txtTraining, *_txtName, *_txtRemaining;
 	Text *_txtTu, *_txtStamina, *_txtHealth, *_txtFiring, *_txtThrowing, *_txtMelee, *_txtStrength;
@@ -61,6 +61,7 @@ private:
 
 	inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
 	inline static bool _plusPressed = false;
+	inline static bool _minusPressed = false;
 	inline static bool _movingBases = false;
 	bool _allowSwitching;
 	inline static bool _lastSortShiftPressed = false;
@@ -101,6 +102,8 @@ public:
 	void btnOkClick(Action *action);
 	/// Handler for clicking the PLUS button.
 	void btnPlusClick(Action *action);
+	/// Handler for clicking the MINUS button.
+	void btnMinusClick(Action* action);
 	/// Handler for clicking the Soldiers list.
 	void lstSoldiersClick(Action *action);
 	/// Handler for pressing-down a mouse-button in the list.

@@ -50,6 +50,7 @@ bool AllocateTrainingState::ignoreBase(Base* base) const
 void AllocateTrainingState::doBeforeBaseChange()
 {
 	_plusPressed = _btnPlus->getPressed();
+	_minusPressed = _btnMinus->getPressed();
 	_selectedSort = _cbxSortBy->getSelected(); 
 	_movingBases = true;
 }
@@ -57,10 +58,15 @@ void AllocateTrainingState::doBeforeBaseChange()
 void AllocateTrainingState::doAfterBaseChange()
 {
 	_movingBases = false;
-	if (_plusPressed)
+	if (_plusPressed) // NO we can't simply do _btnPlus(_plusPressed)
 	{
 		_plusPressed = false;
 		_btnPlus->setPressed(true);
+	}
+	if (_minusPressed)
+	{
+		_minusPressed = false;
+		_btnMinus->setPressed(true);
 	}
 	if (_selectedSort > 0)
 	{
@@ -108,6 +114,7 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 	_txtStrength = new Text(18, 10, 228, 40);
 	_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
 	_btnPlus = new ToggleTextButton(18, 16, 294, 8);
+	_btnMinus = new ToggleTextButton(18, 16, 274, 8); // 274 = 294 -18 - 2
 
 	// Set palette
 	setInterface("allocateMartial");
@@ -128,6 +135,7 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 	add(_txtStrength, "text", "allocateMartial");
 	add(_cbxSortBy, "button", "allocateMartial");
 	add(_btnPlus, "button", "allocateMartial");
+	add(_btnMinus, "button", "allocateMartial");
 
 	centerAllSurfaces();
 
@@ -151,6 +159,10 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 	{
 		_btnPlus->onMouseClick((ActionHandler)&AllocateTrainingState::btnPlusClick, 0);
 	}
+
+	_btnMinus->setText("-");
+	_btnMinus->setPressed(false);
+	_btnMinus->onMouseClick((ActionHandler)&AllocateTrainingState::btnMinusClick, 0);
 
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
@@ -333,6 +345,15 @@ void AllocateTrainingState::btnPlusClick(Action *action)
 }
 
 /**
+ * Toggles visibility of fully trained soldiers.
+ */
+void AllocateTrainingState::btnMinusClick(Action* action)
+{
+	initList(0);
+}
+
+
+/**
  * The soldier info could maybe change (armor? something else?)
  * after going into other screens.
  */
@@ -381,9 +402,13 @@ void AllocateTrainingState::initList(size_t scrl)
 		strength << stats->strength;
 
 		bool isDone = soldier->isFullyTrained();
+		if (_btnMinus->getPressed() && isDone) // filter out fully trained soldiers if button Minus is pressed
+			continue;
+
 		bool isWounded = soldier->isWounded();
 		bool isTraining = soldier->isInTraining();
 		bool isQueued = !isTraining && soldier->getReturnToTrainingWhenHealed();
+
 
 		std::string status;
 		if (isDone)
