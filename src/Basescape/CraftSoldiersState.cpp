@@ -43,6 +43,7 @@
 #include "../Battlescape/BattlescapeGenerator.h"
 #include "../Battlescape/BriefingState.h"
 #include "../Savegame/SavedBattleGame.h"
+#include "../Interface/ToggleTextButton.h"
 
 namespace OpenXcom
 {
@@ -66,6 +67,7 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
+	_btnMinus = new ToggleTextButton(18, 16, 294, 8);
 	_btnOk = new TextButton(hidePreview ? 148 : 30, 16, hidePreview ? 164 : 274, 176);
 	_btnPreview = new TextButton(102, 16, 164, 176);
 	_txtTitle = new Text(300, 17, 16, 7);
@@ -84,6 +86,7 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 
 	add(_window, "window", "craftSoldiers");
 	add(_btnOk, "button", "craftSoldiers");
+	add(_btnMinus, "button", "craftSoldiers");
 	add(_btnPreview, "button", "craftSoldiers");
 	add(_txtTitle, "text", "craftSoldiers");
 	add(_txtName, "text", "craftSoldiers");
@@ -110,6 +113,9 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnOkClick, Options::keyCancel);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnDeassignAllSoldiersClick, Options::keyRemoveSoldiersFromAllCrafts);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnDeassignCraftSoldiersClick, Options::keyRemoveSoldiersFromCraft);
+
+	_btnMinus->setText("-");
+	_btnMinus->onMouseClick((ActionHandler)&CraftSoldiersState::btnMinusClick);
 
 	_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
 	_btnPreview->setVisible(!hidePreview);
@@ -303,6 +309,16 @@ void CraftSoldiersState::btnOkClick(Action *)
 }
 
 /**
+ * @brief filters the soldiers
+ * @param Action Pointer to an action 
+ */
+
+void CraftSoldiersState::btnMinusClick(Action*)
+{
+	initList(0); // refreshes the list. Sadly we lose the scroll position
+}
+
+/**
  * Shows the battlescape preview.
  * @param action Pointer to an action.
  */
@@ -352,6 +368,8 @@ void CraftSoldiersState::initList(size_t scrl)
 	BaseSumDailyRecovery recovery = _base->getSumRecoveryPerDay();
 	for (const auto* soldier : *_base->getSoldiers())
 	{
+		if (_btnMinus->getPressed() && soldier->isWounded())
+			continue;	// filter out wounded soldiers if the button is pressed
 		if (_dynGetter != NULL)
 		{
 			// call corresponding getter

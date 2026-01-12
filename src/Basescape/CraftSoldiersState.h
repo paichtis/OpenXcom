@@ -31,6 +31,7 @@ class TextList;
 class ComboBox;
 class Base;
 class Soldier;
+class ToggleTextButton;
 struct SortFunctor;
 
 /**
@@ -42,6 +43,7 @@ class CraftSoldiersState : public TouchState
 private:
 	TextButton *_btnOk;
 	TextButton *_btnPreview;
+	ToggleTextButton* _btnMinus;
 	Window *_window;
 	Text *_txtTitle, *_txtName, *_txtRank, *_txtCraft, *_txtAvailable, *_txtUsed;
 	ComboBox *_cbxSortBy;
@@ -64,6 +66,8 @@ public:
 	void cbxSortByChange(Action *action);
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
+	/// Handler for pressing the Minus button.
+	void btnMinusClick(Action* action);
 	/// Handler for clicking the Preview button.
 	void btnPreviewClick(Action *action);
 	/// Updates the soldiers list.
