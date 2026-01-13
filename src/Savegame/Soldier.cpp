@@ -1409,7 +1409,7 @@ void Soldier::trainPsi1Day()
  * Is the soldier already fully psi-trained?
  * @return True, if the soldier cannot gain any more stats in the psi-training facility.
  */
-bool Soldier::isFullyPsiTrained()
+bool Soldier::isFullyPsiTrained() const
 {
 	if (_currentStats.psiSkill >= _rules->getStatCaps().psiSkill)
 	{

@@ -38,6 +38,7 @@
 #include "../Basescape/SoldierSortUtil.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
+#include "../Basescape/FilterToggleButton.h"
 
 namespace OpenXcom
 {
@@ -114,7 +115,7 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 	_txtStrength = new Text(18, 10, 228, 40);
 	_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
 	_btnPlus = new ToggleTextButton(18, 16, 294, 8);
-	_btnMinus = new ToggleTextButton(18, 16, 274, 8); // 274 = 294 -18 - 2
+	_btnMinus = new FilterToggleButton(18, 16, 274, 8); // 274 = 294 -18 - 2
 
 	// Set palette
 	setInterface("allocateMartial");
@@ -160,7 +161,6 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 		_btnPlus->onMouseClick((ActionHandler)&AllocateTrainingState::btnPlusClick, 0);
 	}
 
-	_btnMinus->setText("-");
 	_btnMinus->setPressed(false);
 	_btnMinus->onMouseClick((ActionHandler)&AllocateTrainingState::btnMinusClick, 0);
 
@@ -352,6 +352,13 @@ void AllocateTrainingState::btnMinusClick(Action* action)
 	initList(0);
 }
 
+/** Functor for _btnMinus
+*/
+
+bool trainingFilter(const Soldier* s)
+{
+	return s->isFullyTrained();
+}
 
 /**
  * The soldier info could maybe change (armor? something else?)
@@ -368,7 +375,11 @@ void AllocateTrainingState::init()
 		return;
 	}
 	addNavigationButtons(this, _lstSoldiers);
+
+	_btnMinus->setListAndBase(_lstSoldiers, _base);
+	_btnMinus->setFilter(trainingFilter);
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
+
 	if ( _movingBases)
 		doAfterBaseChange();
 	else
@@ -402,7 +413,7 @@ void AllocateTrainingState::initList(size_t scrl)
 		strength << stats->strength;
 
 		bool isDone = soldier->isFullyTrained();
-		if (_btnMinus->getPressed() && isDone) // filter out fully trained soldiers if button Minus is pressed
+		if (_btnMinus->ignore(soldier)) // filter out fully trained soldiers if button Minus is pressed
 			continue;
 
 		bool isWounded = soldier->isWounded();
@@ -470,6 +481,9 @@ void AllocateTrainingState::lstItemsLeftArrowClick(Action *action)
  */
 void AllocateTrainingState::moveSoldierUp(Action *action, unsigned int row, bool max)
 {
+	if (_btnMinus->getPressed())
+		return;
+
 	Soldier *s = _base->getSoldiers()->at(row);
 	if (max)
 	{
@@ -523,6 +537,9 @@ void AllocateTrainingState::lstItemsRightArrowClick(Action *action)
  */
 void AllocateTrainingState::moveSoldierDown(Action *action, unsigned int row, bool max)
 {
+	if (_btnMinus->getPressed())
+		return;
+
 	Soldier *s = _base->getSoldiers()->at(row);
 	if (max)
 	{
@@ -560,8 +577,8 @@ void AllocateTrainingState::lstSoldiersClick(Action *action)
 	_sel = _lstSoldiers->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
-		auto* soldier = _base->getSoldiers()->at(_sel);
-
+		auto* soldier = _btnMinus->getSelectedSoldier();
+	
 		// can't put fully trained soldiers back into training
 		if (soldier->isFullyTrained()) return;
 
@@ -607,7 +624,8 @@ void AllocateTrainingState::lstSoldiersClick(Action *action)
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
 		_doNotReset = true;
-		_game->pushState(new SoldierInfoState(_base, _sel, true, true));
+		_btnMinus->getSelectedSoldier(); // to calculate offset
+		_game->pushState(new SoldierInfoState(_base, _sel + _btnMinus->getlastOffset(), true, true));
 	}
 }
 
@@ -653,6 +671,9 @@ void AllocateTrainingState::btnDeassignAllSoldiersClick(Action* action)
 		soldier->setTraining(false);
 		soldier->setReturnToTrainingWhenHealed(false);
 
+		if (_btnMinus->ignore(soldier))
+			continue;
+
 		std::string status;
 		if (soldier->isFullyTrained())
 			status = tr("STR_NO_DONE");
@@ -678,10 +699,10 @@ void AllocateTrainingState::btnAssignAllSoldiersClick(Action* action)
 	int row = 0;
 	for (auto* soldier : *_base->getSoldiers())
 	{
-		if (soldier->isFullyTrained())
-		{
-			// can't put fully trained soldiers back into training
-		}
+		if (_btnMinus->ignore(soldier)) // ignored soldiers are fully trained anyway
+			continue;
+		if (soldier->isFullyTrained()) // leaving this like this as the ignore condition may evolve one day
+		{		}
 		else if (soldier->isWounded())
 		{
 			// wounded soldiers can be queued

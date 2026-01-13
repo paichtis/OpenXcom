@@ -26,6 +26,7 @@ namespace OpenXcom
 
 class TextButton;
 class ToggleTextButton;
+class FilterToggleButton;
 class Window;
 class Text;
 class Base;
@@ -42,13 +43,13 @@ class AllocatePsiTrainingState : public State, public BaseSwitcher
 {
 private:
 	TextButton *_btnOk;
-	ToggleTextButton *_btnPlus, *_btnMinus;
+	ToggleTextButton* _btnPlus;
+	FilterToggleButton* _btnMinus;
 	Window *_window;
 	Text *_txtTitle, *_txtTraining, *_txtName, *_txtRemaining;
 	Text *_txtPsiStrength, *_txtPsiSkill;
 	ComboBox *_cbxSortBy;
 	TextList *_lstSoldiers;
-//	std::vector<Soldier*> _soldiers;
 	size_t _sel;
 	int _labSpace;
 	Base *_base;

@@ -26,6 +26,7 @@ namespace OpenXcom
 
 class TextButton;
 class ToggleTextButton;
+class FilterToggleButton;
 class Window;
 class Text;
 class Base;
@@ -42,7 +43,8 @@ class AllocateTrainingState : public State, public BaseSwitcher
 {
 private:
 	TextButton *_btnOk;
-	ToggleTextButton *_btnPlus, *_btnMinus;
+	ToggleTextButton* _btnPlus;
+	FilterToggleButton *_btnMinus;
 	Window *_window;
 	Text *_txtTitle, *_txtTraining, *_txtName, *_txtRemaining;
 	Text *_txtTu, *_txtStamina, *_txtHealth, *_txtFiring, *_txtThrowing, *_txtMelee, *_txtStrength;

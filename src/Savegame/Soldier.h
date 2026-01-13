@@ -244,7 +244,7 @@ public:
 	/// Trains a soldier's psionic abilities (anytimePsiTraining option).
 	void trainPsi1Day();
 	/// Is the soldier already fully psi-trained?
-	bool isFullyPsiTrained();
+	bool isFullyPsiTrained() const;
 	/// Returns whether the unit is in psi training or not
 	bool isInPsiTraining() const;
 	/// set the psi training status

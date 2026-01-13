@@ -39,20 +39,10 @@
 #include "../Basescape/SoldierSortUtil.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
+#include "../Basescape/FilterToggleButton.h"
 
 namespace OpenXcom
 {
-
-
-	/// -- start of base switching related members and methods --
-
-	#if 0
-inline static size_t _selectedSort = -1; // set before moving to another base, used to restore selection after move
-inline static bool _plusPressed = false;
-inline static bool _movingBases = false;
-bool _allowSwitching;
-inline static bool _lastSortShiftPressed = false;
-#endif //0
 
 bool AllocatePsiTrainingState::BaseSwitcherReverse() const
 {
@@ -122,7 +112,7 @@ AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitchi
 	_lstSoldiers = new TextList(290, 112, 8, 52);
 	_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
 	_btnPlus = new ToggleTextButton(18, 16, 294, 8);
-	_btnMinus = new ToggleTextButton(18, 16, 274, 8);
+	_btnMinus = new FilterToggleButton(18, 16, 274, 8);
 
 	// Set palette
 	setInterface("allocatePsi");
@@ -162,7 +152,6 @@ AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitchi
 	{
 		_btnPlus->onMouseClick((ActionHandler)&AllocatePsiTrainingState::btnPlusClick, 0);
 	}
-	_btnMinus->setText("-");
 	_btnMinus->onMouseClick((ActionHandler)&AllocatePsiTrainingState::btnMinusClick, 0);
 
 
@@ -352,6 +341,14 @@ void AllocatePsiTrainingState::btnMinusClick(Action* action)
 	initList(0);
 }
 
+/**
+*  filter used by _btnMinus
+*/
+
+bool psyFilter(const Soldier* s) 
+{
+	return s->isFullyPsiTrained();
+}
 
 /**
  * Updates the soldiers list
@@ -368,6 +365,8 @@ void AllocatePsiTrainingState::init()
 		return;
 	}
 	addNavigationButtons(this, _lstSoldiers);
+	_btnMinus->setFilter(psyFilter);
+	_btnMinus->setListAndBase(_lstSoldiers, _base);
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
 	if (_movingBases)
 		doAfterBaseChange();
@@ -389,7 +388,7 @@ void AllocatePsiTrainingState::initList(size_t scrl)
 		std::ostringstream ssStr;
 		std::ostringstream ssSkl;
 
-		if (_btnMinus->getPressed() && soldier->isFullyPsiTrained())  // ignore fully trained soldiers if minus button is pressed
+		if (_btnMinus->ignore(soldier)) // ignore fully trained soldiers if minus button is pressed
 			continue;
 
 		//		_soldiers.push_back(soldier); NOT USED ANYWHERE
@@ -479,6 +478,8 @@ void AllocatePsiTrainingState::lstItemsLeftArrowClick(Action *action)
  */
 void AllocatePsiTrainingState::moveSoldierUp(Action *action, unsigned int row, bool max)
 {
+	if (_btnMinus->getPressed()) return;  // WIP : for now disable reordering when the list is filtered
+
 	Soldier *s = _base->getSoldiers()->at(row);
 	if (max)
 	{
@@ -532,6 +533,9 @@ void AllocatePsiTrainingState::lstItemsRightArrowClick(Action *action)
  */
 void AllocatePsiTrainingState::moveSoldierDown(Action *action, unsigned int row, bool max)
 {
+	if (_btnMinus->getPressed())
+		return; // WIP : for now disable reordering when the list is filtered
+
 	Soldier *s = _base->getSoldiers()->at(row);
 	if (max)
 	{
@@ -569,7 +573,8 @@ void AllocatePsiTrainingState::lstSoldiersClick(Action *action)
 	_sel = _lstSoldiers->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
-		auto* s = _base->getSoldiers()->at(_sel);
+		//auto* s = _base->getSoldiers()->at(_sel);
+		auto* s = _btnMinus->getSelectedSoldier();
 		if (s->getRules()->getTrainingStatCaps().psiSkill <= 0)
 		{
 			// noop
@@ -601,7 +606,8 @@ void AllocatePsiTrainingState::lstSoldiersClick(Action *action)
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
 		_doNotReset = true;
-		_game->pushState(new SoldierInfoState(_base, _sel, true, true));
+		_btnMinus->getSelectedSoldier(); // to calculate offset
+		_game->pushState(new SoldierInfoState(_base, _sel + _btnMinus->getlastOffset(), true, true));
 	}
 }
 
@@ -645,6 +651,8 @@ void AllocatePsiTrainingState::btnDeassignAllSoldiersClick(Action* action)
 	for (auto* s : *_base->getSoldiers())
 	{
 		s->setPsiTraining(false);
+		if (_btnMinus->ignore(s))	// if soldier is filtered out no need to update his display or increment row
+			continue;
 		if (s->getRules()->getTrainingStatCaps().psiSkill <= 0)
 		{
 			_lstSoldiers->setCellText(row, 3, tr("STR_NO_WOUNDED"));
@@ -658,7 +666,7 @@ void AllocatePsiTrainingState::btnDeassignAllSoldiersClick(Action* action)
 			_lstSoldiers->setCellText(row, 3, tr("STR_NO"));
 		}
 		_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
-		row++;
+		++row;
 	}
 	_labSpace = _base->getAvailablePsiLabs() - _base->getUsedPsiLabs();
 	_txtRemaining->setText(tr("STR_REMAINING_PSI_LAB_CAPACITY").arg(_labSpace));
@@ -673,6 +681,8 @@ void AllocatePsiTrainingState::btnAssignAllSoldiersClick(Action* action)
 	int row = 0;
 	for (auto* s : *_base->getSoldiers())
 	{
+		if (_btnMinus->ignore(s)) //'-' pressed --> ignore filtered out soldiers they are fully trained anyway
+			continue;
 		if (s->getRules()->getTrainingStatCaps().psiSkill <= 0)
 		{
 			// noop
