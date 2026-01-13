@@ -57,7 +57,14 @@ private:
 	getStatFn_t _dynGetter;
 	/// initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
-public:
+
+	mutable size_t _lastOffset = 0; // calculation cache must stay mutable
+	// helper functions to get soldiers
+	Soldier* getSoldierAt(size_t index) const;
+	Soldier* getSelectedSoldier() const;
+	bool ignoreSoldier(const Soldier* soldier) const;
+
+ public:
 	/// Creates the Craft Soldiers state.
 	CraftSoldiersState(Base *base, size_t craft);
 	/// Cleans up the Craft Soldiers state.
