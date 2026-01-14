@@ -68,7 +68,8 @@ public:
 	void btnLeftArrowClick(Action *action);
 	/// Handler for pressing the Right arrow button
 	void btnRightArrowClick(Action *action);
-
+	/// handler for clicking the requiredItems
+	void lstRequiredItemsMousePress(Action* action);
 };
 
 }

@@ -38,6 +38,9 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/Transfer.h"
+#include "ManufactureDependenciesTreeState.h"
+#include "ItemLocationsState.h"
+#include "../Ufopaedia/Ufopaedia.h"
 
 namespace OpenXcom
 {
@@ -140,6 +143,7 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_txtUnitAvailableColumn->setWordWrap(true);
 
 	_lstRequiredItems->setColumns(3, 140, 75, 55);
+	_lstRequiredItems->onMousePress((ActionHandler)&SoldierTransformationState::lstRequiredItemsMousePress);
 
 	if (_game->getMod()->isManaFeatureEnabled())
 	{
@@ -228,6 +232,8 @@ void SoldierTransformationState::initTransformationData()
 		_lstRequiredItems->setCellColor(row, 2, _lstRequiredItems->getSecondaryColor());
 		row++;
 	}
+	_lstRequiredItems->setSelectable(row > 0);
+	_lstRequiredItems->setBackground(_window);
 
 	_btnStart->setVisible(transformationPossible);
 
@@ -608,5 +614,43 @@ void SoldierTransformationState::btnRightArrowClick(Action *action)
 	_sourceSoldier = *iter;
 	initTransformationData();
 }
+
+/**
+ * @brief handles clicking a required item
+ * @param action 
+ */
+void SoldierTransformationState::lstRequiredItemsMousePress(Action* action)
+{
+	std::string tItem = _lstRequiredItems->getCellText(_lstRequiredItems->getSelectedRow(), 0);
+
+	std::string item = "";
+	for (auto& requiredItem : _transformationRule->getRequiredItems())
+	{
+		if ((std::string)tr(requiredItem.first) == tItem)
+			item = requiredItem.first;
+	}
+	if (item.empty())
+		return;
+		
+	if (_game->isRightClick(action, true))
+	{
+		_game->pushState(new ManufactureDependenciesTreeState(item));
+	}
+	else
+	{
+		RuleItem* rule = _game->getMod()->getItem(item);
+		if (_game->isMiddleClick(action, true))
+		{
+			std::string articleId = rule->getUfopediaType();
+			Ufopaedia::openArticle(_game, articleId);
+		}
+		else if (_game->isLeftClick(action, true))
+		{
+			_game->pushState(new ItemLocationsState(rule));
+		}
+	}
+}
+
+
 
 }
