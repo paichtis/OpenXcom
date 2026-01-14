@@ -51,6 +51,7 @@
 #include "../Battlescape/DebriefingState.h"
 #include "../Battlescape/CannotReequipState.h"
 #include "CategoryComboBox.h"
+#include "SoldierInfoState.h"
 
 namespace OpenXcom
 {
@@ -849,6 +850,24 @@ void TransferItemsState::lstItemsMousePress(Action *action)
 					_game->pushState(new ManufactureDependenciesTreeState(rule->getType()));
 				}
 			}
+		}
+		else if (getRow().type == TRANSFER_SOLDIER)
+		{
+			size_t index = 0;
+			bool found = false;
+			for (auto* soldier : *_baseFrom->getSoldiers())
+			{
+				if (soldier->getName() == getRow().name)
+				{
+					found = true;
+					break;
+				}
+				++index;
+			}
+			if (found)
+				_game->pushState(new SoldierInfoState(_baseFrom, index, false, true));
+			else 
+				assert(false);
 		}
 	}
 	else if (_game->isMiddleClick(action, true))

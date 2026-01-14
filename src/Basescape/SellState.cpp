@@ -58,6 +58,7 @@
 #include "../Menu/ErrorMessageState.h"
 #include "../Engine/Sound.h"
 #include "CategoryComboBox.h"
+#include "SoldierInfoState.h"
 
 namespace OpenXcom
 {
@@ -1290,6 +1291,24 @@ void SellState::lstItemsMousePress(Action *action)
 					_game->pushState(new ManufactureDependenciesTreeState(rule->getType()));
 				}
 			}
+		}
+		else if (getRow().type == TRANSFER_SOLDIER)
+		{
+			size_t index = 0;
+			bool found = false;
+			for (auto* soldier : *_base->getSoldiers())
+			{
+				if (soldier->getName() == getRow().name)
+				{
+					found = true;
+					break;
+				}
+				++index;
+			}
+			if (found)
+				_game->pushState(new SoldierInfoState(_base, index, false, true));
+			else
+				assert(false);
 		}
 	}
 	else if (_game->isMiddleClick(action, true))
