@@ -61,11 +61,13 @@ class FilterToggleButton : public ToggleTextButton
 	}
 	void setListAndBase(TextList* list, Base* base);
 
-	size_t getlastOffset() const { return _lastOffset; }
+
 
 	bool ignore(const Soldier* sol) const {	return getPressed() && _hasFilter && _filter(sol); }
 	Soldier* getSoldierAt(size_t index) const;
 	Soldier* getSelectedSoldier() const;
+	size_t getlastOffset() const { return _lastOffset; }
+	size_t calculateOffset(size_t index = -1) const;
 };
 
 } // OpenXcom

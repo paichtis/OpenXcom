@@ -17,10 +17,6 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CraftSoldiersState.h"
-#include <algorithm>
-#include <functional>
-#include <climits>
-#include <algorithm>
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Mod/Mod.h"
@@ -44,10 +40,15 @@
 #include "../Battlescape/BriefingState.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Interface/ToggleTextButton.h"
+#include "FilterToggleButton.h"
+#include <algorithm>
+#include <functional>
+#include <climits>
 
 namespace OpenXcom
 {
 
+#if 0
 Soldier* CraftSoldiersState::getSoldierAt(size_t index) const
 {
 	if (!_btnMinus->getPressed()) // no filtering --> normal get
@@ -74,7 +75,12 @@ bool CraftSoldiersState::ignoreSoldier(const Soldier* soldier) const
 {
 	return _btnMinus->getPressed() && soldier->isWounded();
 }
+#endif //0
 
+bool woundedFilter(const Soldier* s)
+{
+	return s->isWounded();
+}
 
 /**
  * Initializes all the elements in the Craft Soldiers screen.
@@ -95,7 +101,7 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
-	_btnMinus = new ToggleTextButton(18, 16, 294, 8);
+	_btnMinus = new FilterToggleButton(18, 16, 294, 8);
 	_btnOk = new TextButton(hidePreview ? 148 : 30, 16, hidePreview ? 164 : 274, 176);
 	_btnPreview = new TextButton(102, 16, 164, 176);
 	_txtTitle = new Text(300, 17, 16, 7);
@@ -141,9 +147,6 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnOkClick, Options::keyCancel);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnDeassignAllSoldiersClick, Options::keyRemoveSoldiersFromAllCrafts);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnDeassignCraftSoldiersClick, Options::keyRemoveSoldiersFromCraft);
-
-	_btnMinus->setText("-");
-	_btnMinus->onMouseClick((ActionHandler)&CraftSoldiersState::btnMinusClick);
 
 	_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
 	_btnPreview->setVisible(!hidePreview);
@@ -223,6 +226,10 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	_lstSoldiers->onRightArrowClick((ActionHandler)&CraftSoldiersState::lstItemsRightArrowClick);
 	_lstSoldiers->onMouseClick((ActionHandler)&CraftSoldiersState::lstSoldiersClick, 0);
 	_lstSoldiers->onMousePress((ActionHandler)&CraftSoldiersState::lstSoldiersMousePress);
+
+	_btnMinus->onMouseClick((ActionHandler)&CraftSoldiersState::btnMinusClick);
+	_btnMinus->setFilter(woundedFilter);
+	_btnMinus->setListAndBase(_lstSoldiers, _base);
 }
 
 /**
@@ -396,7 +403,7 @@ void CraftSoldiersState::initList(size_t scrl)
 	BaseSumDailyRecovery recovery = _base->getSumRecoveryPerDay();
 	for (const auto* soldier : *_base->getSoldiers())
 	{
-		if (ignoreSoldier(soldier))
+		if (_btnMinus->ignore(soldier))
 			continue;	// filter out wounded soldiers if the button is pressed
 		if (_dynGetter != NULL)
 		{
@@ -490,7 +497,7 @@ void CraftSoldiersState::moveSoldierUp(Action *action, unsigned int row, bool ma
 	if (_btnMinus->getPressed())
 		return;
 
-	Soldier *s = getSoldierAt(row);
+	Soldier *s =_btnMinus->getSoldierAt(row);
 	if (max)
 	{
 		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + row);
@@ -549,7 +556,7 @@ void CraftSoldiersState::moveSoldierDown(Action *action, unsigned int row, bool 
 	if (_btnMinus->getPressed()) // no reordering while the list is filtered out
 		return;		
 
-	Soldier *s = _base->getSoldiers()->at(row);
+	Soldier* s = _btnMinus->getSoldierAt(row);
 	if (max)
 	{
 		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + row);
@@ -586,7 +593,7 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 	if (_game->isLeftClick(action, true))
 	{
 		Craft *c = _base->getCrafts()->at(_craft);
-		Soldier* s = getSelectedSoldier();  //_base->getSoldiers()->at(_lstSoldiers->getSelectedRow());
+		Soldier* s = _btnMinus->getSelectedSoldier();  //_base->getSoldiers()->at(_lstSoldiers->getSelectedRow());
 		if (s->getCraft() == c)
 		{
 			s->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
@@ -633,8 +640,7 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 	}
 	else if (_game->isRightClick(action, true))
 	{
-		getSelectedSoldier(); // to recalculate _lastOffset
-		_game->pushState(new SoldierInfoState(_base, row + _lastOffset, false));
+		_game->pushState(new SoldierInfoState(_base, row + _btnMinus->calculateOffset(), false));
 	}
 }
 
@@ -683,13 +689,13 @@ void CraftSoldiersState::btnDeassignAllSoldiersClick(Action *action)
 		if (soldier->getCraft() && soldier->getCraft()->getStatus() != "STR_OUT")
 		{
 			soldier->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
-			if (!ignoreSoldier(soldier))
+			if (!_btnMinus->ignore(soldier))
 			{
 				_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
 				_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
 			}
 		}
-		if (!ignoreSoldier(soldier))
+		if (!_btnMinus->ignore(soldier))
 			row++;
 	}
 
@@ -711,13 +717,13 @@ void CraftSoldiersState::btnDeassignCraftSoldiersClick(Action *action)
 		if (soldier->getCraft() == c)
 		{
 			soldier->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
-			if (!ignoreSoldier(soldier))
+			if (!_btnMinus->ignore(soldier))
 			{
 				_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
 				_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
 			}
 		}
-		if (!ignoreSoldier(soldier))
+		if (!_btnMinus->ignore(soldier))
 			row++;
 	}
 

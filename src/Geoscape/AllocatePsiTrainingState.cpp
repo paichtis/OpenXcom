@@ -606,8 +606,7 @@ void AllocatePsiTrainingState::lstSoldiersClick(Action *action)
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
 		_doNotReset = true;
-		_btnMinus->getSelectedSoldier(); // to calculate offset
-		_game->pushState(new SoldierInfoState(_base, _sel + _btnMinus->getlastOffset(), true, true));
+		_game->pushState(new SoldierInfoState(_base, _sel + _btnMinus->calculateOffset(), true, true));
 	}
 }
 

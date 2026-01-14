@@ -31,7 +31,7 @@ class TextList;
 class ComboBox;
 class Base;
 class Soldier;
-class ToggleTextButton;
+class FilterToggleButton;
 struct SortFunctor;
 
 /**
@@ -43,7 +43,7 @@ class CraftSoldiersState : public TouchState
 private:
 	TextButton *_btnOk;
 	TextButton *_btnPreview;
-	ToggleTextButton* _btnMinus;
+	FilterToggleButton* _btnMinus;
 	Window *_window;
 	Text *_txtTitle, *_txtName, *_txtRank, *_txtCraft, *_txtAvailable, *_txtUsed;
 	ComboBox *_cbxSortBy;
@@ -58,11 +58,14 @@ private:
 	/// initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
 
+	
+#if 0
 	mutable size_t _lastOffset = 0; // calculation cache must stay mutable
 	// helper functions to get soldiers
 	Soldier* getSoldierAt(size_t index) const;
 	Soldier* getSelectedSoldier() const;
 	bool ignoreSoldier(const Soldier* soldier) const;
+#endif //0
 
  public:
 	/// Creates the Craft Soldiers state.

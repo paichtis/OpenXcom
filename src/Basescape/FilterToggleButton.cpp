@@ -57,4 +57,13 @@ Soldier* FilterToggleButton::getSelectedSoldier() const
 	return getSoldierAt(_list->getSelectedRow());
 }
 
+size_t FilterToggleButton::calculateOffset(size_t index) const
+{
+	if (index == -1)
+		getSelectedSoldier();
+	else
+		getSoldierAt(index);
+	return _lastOffset;
+}
+
 } //namespace OpenXcom
