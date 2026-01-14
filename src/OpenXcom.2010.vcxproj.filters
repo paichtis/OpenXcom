@@ -915,9 +915,6 @@
     <ClCompile Include="Mod\RuleStatBonus.cpp">
       <Filter>Mod</Filter>
     </ClCompile>
-    <ClCompile Include="Geoscape\TrainingState.cpp">
-      <Filter>Geoscape</Filter>
-    </ClCompile>
     <ClCompile Include="Battlescape\ItemSprite.cpp">
       <Filter>Battlescape</Filter>
     </ClCompile>
@@ -1224,6 +1221,9 @@
       <Filter>Ufopaedia</Filter>
     </ClCompile>
     <ClCompile Include="Basescape\BaseSwitcher.cpp">
+      <Filter>Basescape</Filter>
+    </ClCompile>
+    <ClCompile Include="Basescape\FilterToggleButton.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2174,9 +2174,6 @@
     <ClInclude Include="Mod\RuleStatBonus.h">
       <Filter>Mod</Filter>
     </ClInclude>
-    <ClInclude Include="Geoscape\TrainingState.h">
-      <Filter>Geoscape</Filter>
-    </ClInclude>
     <ClInclude Include="Battlescape\ItemSprite.h">
       <Filter>Battlescape</Filter>
     </ClInclude>
@@ -2709,6 +2706,9 @@
       <Filter>Basescape</Filter>
     </ClInclude>
     <ClInclude Include="Basescape\CategoryComboBox.h">
+      <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\FilterToggleButton.h">
       <Filter>Basescape</Filter>
     </ClInclude>
   </ItemGroup>
