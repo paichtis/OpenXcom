@@ -28,6 +28,7 @@ class Window;
 class TextButton;
 class Text;
 class TextList;
+class CannotReequipState;
 
 /**
  * Screen which displays needed elements to start productions (items/required workshop state/cost to build a unit, ...).
@@ -41,7 +42,11 @@ private:
 	TextButton *_btnCancel, *_btnStart;
 	Text *_txtTitle, *_txtManHour, *_txtCost, *_txtWorkSpace, *_txtRequiredItemsTitle, *_txtItemNameColumn, *_txtUnitRequiredColumn, *_txtUnitAvailableColumn;
 	TextList *_lstRequiredItems;
-public:
+	CannotReequipState *_cannotReequipState = nullptr;
+	size_t _indexItems, _indexPerson, _indexOutput; // first index for any of these kind of lines
+
+  public:
+	
 	/// Creates the State.
 	ManufactureStartState(Base *base, RuleManufacture *item);
 	/// Handler for the Cancel button.
