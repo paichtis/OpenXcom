@@ -164,6 +164,7 @@ en-US:
   STR_CHANGES_MIN: "Changes (min)"
   STR_CHANGES_MAX: "Changes (max)"
   STR_BONUS_STATS: "Bonus stats"
+  STR_GET_MISSING_ITEMS: "Get missing items !"
 #SoldierTransformationListState.cpp
   STR_TRANSFORMATIONS_OVERVIEW: "Transformations Overview"
   STR_PROJECT_NAME: "PROJECT NAME"
