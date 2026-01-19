@@ -80,6 +80,7 @@ class CannotReequipState : public State
 	{
 		  return new CannotReequipState(base, craftName, message, bigTitle);
 	}
+
 	/// Checks if there are no missing items, deletes the state if so.
 	bool deleteIfEmpty();
 
@@ -109,6 +110,8 @@ class CannotReequipState : public State
 	MissingItemsMap* getMissingItems();
 	/// Adds or increases a missing item
 	bool addMissingItem(const RuleItem* rule, int amount);
+	/// calculates how many items (if any) are missing 
+	bool calculateMissingItem(const RuleItem* rule, int needed);
 	// Decreases the number of missing items by the bought amount.
 	bool decreaseMissingItem(const RuleItem* rule, int amount);
 	// Checks if an item is missing.

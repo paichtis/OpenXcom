@@ -154,22 +154,7 @@ void CannotReequipState::delayedInit()
 	_txtTitle->setText(_message);
 	if (_bigTitle)
 		_txtTitle->setBig();
-#if 0
-	if (_isRearm)
-	{
-		std::string objectName = (_missingItemsMap.size() >= 1) ? tr(_missingItemsMap.begin()->first->getType()) : tr("STR_ERROR");
-		std::string msg = tr("STR_NOT_ENOUGH_ITEM_TO_REARM_CRAFT_AT_BASE")
-							  .arg(objectName)
-							  .arg(_craftName)
-							  .arg(_base->getName());
-		_txtTitle->setText(msg);	
-	}
-	else
-	{
-		_txtTitle->setText(tr("STR_NOT_ENOUGH_EQUIPMENT_TO_FULLY_RE_EQUIP_SQUAD"));
-		_txtTitle->setBig();
-	}
-#endif // 0
+
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setWordWrap(true);
 
@@ -315,7 +300,7 @@ CannotReequipState::MissingItemsMap* CannotReequipState::getMissingItems()
 
 bool CannotReequipState::addMissingItem(const RuleItem* rule, int amount)
 {
-	if (!rule) // do not allow null rules
+	if (!rule || (amount <= 0)) // do not allow null rules
 		return false;
 
 	auto it = _missingItemsMap.find(rule);
@@ -326,6 +311,17 @@ bool CannotReequipState::addMissingItem(const RuleItem* rule, int amount)
 	else
 		it->second += amount;
 	return true;
+}
+/**
+ *  calculates how many items (if any) are missing and adds them to the map if needed
+ * @param rule Type of item.
+ * @param amount Number of items needed.
+ * @return true if the item was added to the map
+*/
+
+bool CannotReequipState::calculateMissingItem(const RuleItem* rule, int needed)
+{
+	return addMissingItem(rule, needed - _base->getStorageItems()->getItem(rule));
 }
 
 /**

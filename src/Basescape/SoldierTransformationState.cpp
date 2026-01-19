@@ -41,6 +41,7 @@
 #include "ManufactureDependenciesTreeState.h"
 #include "ItemLocationsState.h"
 #include "../Ufopaedia/Ufopaedia.h"
+#include "../Battlescape/CannotReequipState.h"
 
 namespace OpenXcom
 {
@@ -52,9 +53,10 @@ namespace OpenXcom
  * @param sourceSoldier Pointer to the selected soldier
  * @param filteredListOfSoldiers Pointer to the list of available soldiers
  */
-SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation *transformationRule, Base *base, Soldier *sourceSoldier, std::vector<Soldier *> *filteredListOfSoldiers) :
-	_transformationRule(transformationRule), _base(base), _sourceSoldier(sourceSoldier), _filteredListOfSoldiers(filteredListOfSoldiers)
+SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation *transformationRule, Base *base, Soldier *sourceSoldier, std::vector<Soldier *> *filteredListOfSoldiers)
+	: _transformationRule(transformationRule), _base(base), _sourceSoldier(sourceSoldier), _filteredListOfSoldiers(filteredListOfSoldiers)
 {
+	_cannotReequipState = nullptr;
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnCancel = new TextButton(148, 16, 8, 176);
 	_btnStart = new TextButton(148, 16, 164, 176);
@@ -107,7 +109,6 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_btnCancel->onMouseClick((ActionHandler)&SoldierTransformationState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&SoldierTransformationState::btnCancelClick, Options::keyCancel);
 
-	_btnStart->setText(tr(_transformationRule->getName()));
 	_btnStart->onMouseClick((ActionHandler)&SoldierTransformationState::btnStartClick);
 	_btnStart->onKeyboardPress((ActionHandler)&SoldierTransformationState::btnStartClick, Options::keyOk);
 
@@ -215,27 +216,40 @@ void SoldierTransformationState::initTransformationData()
 	_txtTransferTime->setText(tr("STR_TRANSFER_TIME").arg(tr("STR_HOUR", transferTime)));
 	_txtRecoveryTime->setText(tr("STR_RECOVERY_TIME").arg(tr("STR_DAY", _transformationRule->getRecoveryTime())));
 
-	int row = 0;
-	for (auto& requiredItem : _transformationRule->getRequiredItems())
+	if (!_transformationRule->getRequiredItems().empty())
 	{
-		std::ostringstream s1, s2;
-		s1 << requiredItem.second;
-		const auto* rule = _game->getMod()->getItem(requiredItem.first);
-		if (rule != 0)
+		_cannotReequipState = CannotReequipState::create(_base, "", tr("STR_GET_MISSING_ITEMS"), true);
+		int row = 0;
+		for (auto& requiredItem : _transformationRule->getRequiredItems())
 		{
-			s2 << _base->getStorageItems()->getItem(rule);
-			transformationPossible &= (_base->getStorageItems()->getItem(rule) >= requiredItem.second);
-		}
+			std::ostringstream s1, s2;
+			s1 << requiredItem.second;
+			const auto* rule = _game->getMod()->getItem(requiredItem.first);
+			if (rule != 0)
+			{
+				s2 << _base->getStorageItems()->getItem(rule);
+				_cannotReequipState->calculateMissingItem(rule, requiredItem.second);
+			}
 
-		_lstRequiredItems->addRow(3, tr(requiredItem.first).c_str(), s1.str().c_str(), s2.str().c_str());
-		_lstRequiredItems->setCellColor(row, 1, _lstRequiredItems->getSecondaryColor());
-		_lstRequiredItems->setCellColor(row, 2, _lstRequiredItems->getSecondaryColor());
-		row++;
+			_lstRequiredItems->addRow(3, tr(requiredItem.first).c_str(), s1.str().c_str(), s2.str().c_str());
+			_lstRequiredItems->setCellColor(row, 1, _lstRequiredItems->getSecondaryColor());
+			_lstRequiredItems->setCellColor(row, 2, _lstRequiredItems->getSecondaryColor());
+			row++;
+		}
+		_lstRequiredItems->setSelectable(row > 0);
+		_lstRequiredItems->setBackground(_window);
+		if (_cannotReequipState->deleteIfEmpty())
+			_cannotReequipState = nullptr;
+
 	}
-	_lstRequiredItems->setSelectable(row > 0);
-	_lstRequiredItems->setBackground(_window);
 
 	_btnStart->setVisible(transformationPossible);
+	if (!_cannotReequipState)
+	{ // no missing items
+		_btnStart->setText(tr(_transformationRule->getName()));
+	}
+	else
+		_btnStart->setText(tr("STR_GET_MISSING_ITEMS"));
 
 	if (!Mod::isEmptyRuleName(_transformationRule->getProducedItem()))
 	{
@@ -441,6 +455,13 @@ void SoldierTransformationState::btnCancelClick(Action *action)
  */
 void SoldierTransformationState::btnStartClick(Action *action)
 {
+	if (_cannotReequipState)
+	{	// some items are missing let's go get them !
+		_game->popState();  // sadly we have to close this state as it hasn't an init() method to reset things
+		_game->pushState(_cannotReequipState);
+		return;
+	}
+
 	// Pay upfront, no refunds
 	_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() - _transformationRule->getCost());
 

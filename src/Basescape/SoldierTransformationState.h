@@ -31,6 +31,7 @@ class TextList;
 class Base;
 class Soldier;
 class RuleSoldierTransformation;
+class CannotReequipState;
 
 /**
  * Screen that allocates a soldier to a transformation project
@@ -47,6 +48,7 @@ private:
 	Text *_txtCost, *_txtTransferTime, *_txtRecoveryTime, *_txtRequiredItems, *_txtItemNameColumn, *_txtUnitRequiredColumn, *_txtUnitAvailableColumn;
 	TextList *_lstRequiredItems, *_lstStatChanges;
 	TextButton *_btnCancel, *_btnLeftArrow, *_btnRightArrow, *_btnStart;
+	CannotReequipState* _cannotReequipState;
 
 	/// Creates a string for the soldier stats table
 	std::string formatStat(int stat, bool plus, bool hide);
