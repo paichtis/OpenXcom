@@ -197,7 +197,7 @@ ManufactureStartState::ManufactureStartState(Base* base, RuleManufacture* item) 
 			}
 		}
 	}
-	if (!hasVanillaOutput && !_item->getProducedItems().empty())
+	if ((!hasVanillaOutput || Options::oxceBaseManufactureAlwaysFullProductionDetails) && !_item->getProducedItems().empty())
 	{
 		// separator line
 		_lstRequiredItems->addRow(1, tr("STR_UNITS_PRODUCED").c_str());

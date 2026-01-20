@@ -145,6 +145,7 @@ OPT bool oxceBaseSoldierTransformationShowOnlyEligible;
 OPT bool oxceBaseFilterResearchable;
 OPT bool oxceBaseManufactureFallbackButton;
 OPT bool oxceBaseManufactureInfinityButton;
+OPT bool oxceBaseManufactureAlwaysFullProductionDetails;
 OPT bool oxceBaseTouchButtons;
 
 OPT bool oxceDisableAlienInventory;
