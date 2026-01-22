@@ -100,7 +100,7 @@ private:
 	Text *_nextText, *_prevText;
 
 	bool _moved = false;
-	inline static int _selectedCategoryBeforeMove = -1; // set before moving to another base, used to restore selection after move
+	inline static std::string _selectedCategoryBeforeMove = ""; // set before moving to another base, used to restore selection after move
 	inline static std::string _searchTextBeforeMove = ""; // set before moving to another base, used to restore quick search after move
 
 	virtual bool ignoreBase(Base* base) const	{	return false; }

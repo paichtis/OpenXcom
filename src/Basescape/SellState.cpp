@@ -92,7 +92,7 @@ void SellState::addFirstCategories() {
 		_cbxCategory->push_back("STR_FILTER_RESEARCHABLE");
 	}
 
-	if (_game->getSavedGame()->hasAutosellItems() && _debriefingState == 0)
+	if (_game->getSavedGame()->hasAutosellItems())
 		_cbxCategory->push_back("STR_FILTER_AUTOSELL");
 }
 
@@ -189,17 +189,17 @@ void SellState::addNavigationButtons(InteractiveSurface *surface) {
 }
 
 void SellState::doBeforeBaseChange() {
-	_selectedCategoryBeforeMove = _cbxCategory->getSelected();
+	_selectedCategoryBeforeMove = _cbxCategory->getSelectedOption();
 	_searchTextBeforeMove = _btnQuickSearch->getText();
 	btnOkClick(nullptr); // to sell items in current base before switching
 }
 
 void SellState::doAfterBaseChange() {
 	// Base Navigation last steps
-	if (_selectedCategoryBeforeMove >= 0 && (size_t)_selectedCategoryBeforeMove < _cbxCategory->getSize())
+	if (!_selectedCategoryBeforeMove.empty())
 	{
-		_cbxCategory->setSelected(_selectedCategoryBeforeMove);
-		_selectedCategoryBeforeMove = -1;
+		_cbxCategory->setSelectedByString(_selectedCategoryBeforeMove);
+		_selectedCategoryBeforeMove = "";
 	}
 	if (_searchTextBeforeMove != "")
 	{
@@ -1019,7 +1019,7 @@ void SellState::btnOkClick(Action *)
 					_debriefingState->decreaseRecoveredItemCount(item, transferRow.amount);
 
 					// set autosell status if we sold all of the item
-					_game->getSavedGame()->setAutosell(item, (transferRow.qtySrc == transferRow.amount));
+					// _game->getSavedGame()->setAutosell(item, (transferRow.qtySrc == transferRow.amount));  done manually now !
 				}
 
 				break;
@@ -1027,11 +1027,7 @@ void SellState::btnOkClick(Action *)
 		}
 		else
 		{
-			if (_debriefingState != 0 && transferRow.type == TRANSFER_ITEM)
-			{
-				// disable autosell since we haven't sold any of the item.
-				_game->getSavedGame()->setAutosell((RuleItem*)transferRow.rule, false);
-			}
+			// nothing now (items are now added or removed manually)
 		}
 	}
 	if (_debriefingState != 0 && _debriefingState->getTotalRecoveredItemCount() <= 0)
@@ -1132,8 +1128,7 @@ void SellState::lstItemsLeftArrowClick(Action *action)
 		if (getRow().qtySrc > getRow().amount)			changeByValue(INT_MAX, 1);
 		else if (																		// if already at max .... 
 					_cbxCategory->isSelected("STR_FILTER_AUTOSELL") &&	// ... and not in autosell view 
-					(getRow().type == TRANSFER_ITEM) &&									// ... and is an item
-					!_debriefingState  )												// ... and not in debriefing	
+					(getRow().type == TRANSFER_ITEM) )												
 		{                                                                               //  we then add it to the autosell list
 			RuleItem* rule = (RuleItem*) getRow().rule;
 			if (_game->getSavedGame()->setAutosell(rule, true) )                 // add to autosell
