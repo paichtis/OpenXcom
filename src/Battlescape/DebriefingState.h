@@ -78,7 +78,7 @@ private:
 	std::string _currentTooltip;
 	Text *_txtTooltip;
 	//std::vector<ReequipStat> _missingItems;
-	CannotReequipState *_cannotReequipState;
+	CannotReequipState *_cannotReequipState = nullptr;
 	std::map<const RuleItem*, int> _rounds, _roundsPainKiller, _roundsStimulant, _roundsHeal, _recoveredItems;
 	Uint8 _ammoColor;
 	std::map<int, RecoveryItem*> _recoveryStats;
