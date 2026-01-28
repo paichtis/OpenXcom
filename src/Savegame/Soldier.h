@@ -249,6 +249,8 @@ public:
 	bool isInPsiTraining() const;
 	/// set the psi training status
 	void setPsiTraining(bool psi);
+	/// Returns whether the unit is available for psi lab training or not
+	bool isAvailableForPsiLabTraining() const;
 	/// returns this soldier's psionic skill improvement score for this month.
 	int getImprovement() const;
 	/// returns this soldier's psionic strength improvement score for this month.
@@ -272,6 +274,8 @@ public:
 	bool isFullyTrained() const;
 	/// Returns whether the unit is in training or not
 	bool isInTraining() const;
+	/// Returns whether the unit is available for training or not
+	bool isAvailableForTraining(bool ignoreQueued = false) const;
 	/// set the training status
 	void setTraining(bool training);
 	/// Should the soldier return to martial training automatically when fully healed?

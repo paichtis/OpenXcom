@@ -49,8 +49,10 @@ class State
 	friend class Timer;
 	friend class BaseSwitcher;
 
-protected:
-	static Game *_game;
+  public:
+	static Game* getGame() { return _game; }
+  protected:
+	static Game* _game;
 	std::vector<Surface*> _surfaces;
 	bool _screen;
 	bool _soundPlayed;

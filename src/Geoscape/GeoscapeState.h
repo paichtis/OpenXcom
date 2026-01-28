@@ -28,6 +28,7 @@ class Globe;
 class TextButton;
 class InteractiveSurface;
 class Text;
+class NotificationText;
 class ComboBox;
 class Timer;
 class DogfightState;
@@ -58,8 +59,8 @@ private:
 	bool _pause, _zoomInEffectDone, _zoomOutEffectDone;
 	Text *_txtDebug;
 	ComboBox *_cbxRegion, *_cbxZone, *_cbxArea, *_cbxCountry;
-	Text *_txtSlacking;
-	Text *_txtTraining;
+	NotificationText* _txtSlacking;
+	NotificationText* _txtTraining;
 	std::list<State*> _popups;
 	std::list<DogfightState*> _dogfights, _dogfightsToBeStarted;
 	std::vector<Craft*> _activeCrafts;
@@ -165,6 +166,10 @@ public:
 	void btnZoomOutLeftClick(Action *action);
 	/// Handler for right-clicking the Zoom Out icon.
 	void btnZoomOutRightClick(Action *action);
+	/// handler for clickning the training indicator
+	void btnTrainingIndicatorClick(Action* action);
+	/// handler for clicking the slacking indicator
+	void btnSlackingIndicatorClick(Action* action);
 	/// Blit method - renders the state and dogfights.
 	void blit() override;
 	/// Globe zoom in effect for dogfights.

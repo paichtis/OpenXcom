@@ -1401,6 +1401,23 @@ int Base::getUsedPsiLabs() const
 }
 
 /**
+ * Returns the amount of soldiers
+ * available to be put manually in psi lab training in the base.
+ * @return Number of soldiers.
+ */
+
+int Base::countAvailableSoldiersForPsiTraining() const
+{
+	int count = 0;
+	for (auto* soldier : _soldiers)
+	{
+		if (soldier->isAvailableForPsiLabTraining())
+			++count;
+	}
+	return count;
+}
+
+/**
  * Returns the total amount of training space
  * available in the base.
  * @return Training space.
@@ -1443,6 +1460,23 @@ int Base::getUsedTraining() const
 int Base::getFreeTrainingSpace() const
 {
 	return getAvailableTraining() - getUsedTraining();
+}
+
+/**
+ * Returns the amount of soldiers
+ * available to be put manually in training in the base.
+ * @return Number of soldiers.
+ */
+
+int Base::countAvailableSoldiersForTraining() const
+{
+	int count = 0;
+	for (auto* soldier : _soldiers)
+	{
+		if (soldier->isAvailableForTraining())
+			count++;
+	}
+	return count;
 }
 
 /**

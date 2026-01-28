@@ -135,6 +135,11 @@
 #include "../Battlescape/CannotReequipState.h"		// for craft re-arm
 #include "../fmath.h"
 #include "../fallthrough.h"
+#include "AllocatePsiTrainingState.h"
+#include "AllocateTrainingState.h"
+#include "NotificationText.h"
+#include "../Basescape/ResearchState.h"
+#include "../Basescape/ManufactureState.h"
 
 namespace OpenXcom
 {
@@ -194,10 +199,10 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_txtYear = new Text(59, 8, screenWidth-61, screenHeight/2+1);
 	_txtFunds = new Text(59, 8, screenWidth-61, screenHeight/2-27);
 
-	int slackingIndicatorOffset = _game->getMod()->getInterface("geoscape")->getElement("slackingIndicator")->custom;
-	_txtSlacking = new Text(59, 17, screenWidth - 61, screenHeight / 2 - 100 + slackingIndicatorOffset);
-	int trainingIndicatorOffset = _game->getMod()->getInterface("geoscape")->getElement("trainingIndicator")->custom;
-	_txtTraining = new Text(59, 17, screenWidth - 61, screenHeight / 2 + 100 + trainingIndicatorOffset);
+	NotificationText::setup(59, 17, screenWidth - 121, 2);
+
+	_txtSlacking = new NotificationText(0);
+	_txtTraining = new NotificationText(1);
 
 	_timeSpeed = _btn5Secs;
 	_gameTimer = new Timer(Options::geoClockSpeed);
@@ -411,8 +416,8 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 
 	_txtYear->setAlign(ALIGN_CENTER);
 
-	_txtSlacking->setAlign(ALIGN_RIGHT);
-	_txtTraining->setAlign(ALIGN_RIGHT);
+	_txtSlacking->onMouseClick((ActionHandler)&GeoscapeState::btnSlackingIndicatorClick);
+	_txtTraining->onMouseClick((ActionHandler)&GeoscapeState::btnTrainingIndicatorClick);
 
 	if (Options::showFundsOnGeoscape)
 	{
@@ -3300,6 +3305,42 @@ void GeoscapeState::btnZoomOutRightClick(Action *)
 	_globe->zoomMin();
 }
 
+void GeoscapeState::btnTrainingIndicatorClick(Action* action)
+{
+	for (auto* xcomBase : *_game->getSavedGame()->getBases())
+	{
+		 if( std::min(xcomBase->getFreeTrainingSpace(), xcomBase->countAvailableSoldiersForTraining()) > 0 )
+		 {
+			 _game->pushState(new AllocateTrainingState(xcomBase));
+			 return;
+		 }
+		 if(std::min(xcomBase->getFreePsiLabs(), xcomBase->countAvailableSoldiersForPsiTraining()) > 0)
+		 {
+			 _game->pushState(new AllocatePsiTrainingState(xcomBase));
+			 return;
+		 }
+	}
+}
+
+void GeoscapeState::btnSlackingIndicatorClick(Action* action)
+{
+	for (auto* xcomBase : *_game->getSavedGame()->getBases())
+	{
+		if( xcomBase->getAvailableScientists() > 0)
+		{
+			_game->pushState(new BasescapeState(xcomBase, _globe)); // to go back to base after research
+			_game->pushState(new ResearchState(xcomBase));
+			return;
+		}
+		if( xcomBase->getAvailableEngineers() > 0)
+		{
+			_game->pushState(new BasescapeState(xcomBase, _globe));
+			_game->pushState(new ManufactureState(xcomBase));
+			return;
+		}
+	}
+}
+
 /**
  * Zoom in effect for dogfights.
  */
@@ -4813,61 +4854,16 @@ void GeoscapeState::updateSlackingIndicator()
 		int freePsi = 0;
 		for (auto* xcomBase : *_game->getSavedGame()->getBases())
 		{
-			int facilityGym = xcomBase->getFreeTrainingSpace();
-			if (facilityGym > 0)
-			{
-				int soldGym = 0;
-				for (auto* soldier : *xcomBase->getSoldiers())
-				{
-					bool isTraining = soldier->isInTraining();
-					bool isQueued = !isTraining && soldier->getReturnToTrainingWhenHealed();
-					bool isDone = soldier->isFullyTrained();
-
-					if (isTraining || isQueued || isDone)
-					{
-						// ignore this guy
-					}
-					else
-					{
-						// can train, or can be queued for training
-						soldGym++;
-					}
-					if (soldGym >= facilityGym) break;
-				}
-				freeGym += soldGym;
-			}
-
-			int facilityPsi = xcomBase->getFreePsiLabs();
-			if (facilityPsi > 0)
-			{
-				int soldPsi = 0;
-				for (auto* soldier : *xcomBase->getSoldiers())
-				{
-					bool isTraining = soldier->isInPsiTraining();
-					bool isDone = soldier->isFullyPsiTrained();
-					bool isNotEligible = soldier->getRules()->getTrainingStatCaps().psiSkill <= 0;
-
-					if (isTraining || isDone || isNotEligible)
-					{
-						// ignore this guy
-					}
-					else
-					{
-						// can train
-						soldPsi++;
-					}
-					if (soldPsi >= facilityPsi) break;
-				}
-				freePsi += soldPsi;
-			}
+			freeGym += std::min(xcomBase->getFreeTrainingSpace(), xcomBase->countAvailableSoldiersForTraining());
+			freePsi += std::min(xcomBase->getFreePsiLabs(), xcomBase->countAvailableSoldiersForPsiTraining());
 		}
 		if (freeGym > 0 || freePsi > 0)
 		{
-			_txtTraining->setText(tr("STR_TRAINING_INDICATOR").arg(freePsi).arg(freeGym));
+			_txtTraining->display(tr("STR_TRAINING_INDICATOR").arg(freePsi).arg(freeGym));
 		}
 		else
 		{
-			_txtTraining->setText("");
+			_txtTraining->hide();
 		}
 	}
 
@@ -4883,11 +4879,11 @@ void GeoscapeState::updateSlackingIndicator()
 	}
 	if (scientistsSlacking > 0 || engineersSlacking > 0)
 	{
-		_txtSlacking->setText(tr("STR_SLACKING_INDICATOR").arg(scientistsSlacking).arg(engineersSlacking));
+		_txtSlacking->display(tr("STR_SLACKING_INDICATOR").arg(scientistsSlacking).arg(engineersSlacking));
 	}
 	else
 	{
-		_txtSlacking->setText("");
+		_txtSlacking->hide();
 	}
 }
 

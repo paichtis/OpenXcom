@@ -61,10 +61,12 @@ State::State() : _screen(true), _soundPlayed(false), _modal(0), _ruleInterface(0
  */
 State::~State()
 {
-	for (auto* surface : _surfaces)
+	for (auto*& surface : _surfaces)
 	{
 		delete surface;
+		surface = nullptr;
 	}
+	_surfaces.clear(); // most probably not necessary
 }
 
 /**

@@ -268,12 +268,16 @@ public:
 	int getAvailablePsiLabs() const;
 	/// Gets the base's total free psi lab space.
 	int getFreePsiLabs() const;
+	/// Gets the amount of soldiers available for psi lab training.
+	int countAvailableSoldiersForPsiTraining() const;
 	/// Gets the base's used training space.
 	int getUsedTraining() const;
 	/// Gets the base's total available training space.
 	int getAvailableTraining() const;
 	/// Gets the base's total free training space.
 	int getFreeTrainingSpace() const;
+	/// Gets the amount of soldiers available for training. 
+	int countAvailableSoldiersForTraining() const;
 	/// Gets the amount of free Containment space.
 	int getFreeContainment(int prisonType) const;
 	/// Gets the total amount of Containment space.

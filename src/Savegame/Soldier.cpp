@@ -1445,6 +1445,12 @@ void Soldier::setPsiTraining(bool psi)
 	_psiTraining = psi;
 }
 
+
+bool Soldier::isAvailableForPsiLabTraining() const
+{
+	return (hasFullHealth() && !isFullyPsiTrained() && !getDeath() && !isInPsiTraining());
+}
+
 /**
  * returns this soldier's psionic skill improvement score for this month.
  * @return score
@@ -1600,6 +1606,17 @@ bool Soldier::isInTraining() const
 {
 	return _training;
 }
+/***
+ *	returns whether or not the unit is available for training
+ *	@param ignoreQueued If true, the function will return true even if the soldier is queued for training.
+*/
+
+
+bool Soldier::isAvailableForTraining(bool ignoreQueued) const
+{
+	return (hasFullHealth() && !isFullyTrained() && !getDeath() && !isInTraining()) || (ignoreQueued || getReturnToTrainingWhenHealed() ) ;
+}
+
 
 /**
  * changes whether or not the unit is in physical training

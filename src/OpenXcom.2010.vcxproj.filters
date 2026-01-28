@@ -1226,6 +1226,12 @@
     <ClCompile Include="Basescape\FilterToggleButton.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="Interface\ConfirmationDialogState.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Geoscape\NotificationText.cpp">
+      <Filter>Geoscape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2710,6 +2716,12 @@
     </ClInclude>
     <ClInclude Include="Basescape\FilterToggleButton.h">
       <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\ConfirmationDialogState.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Geoscape\NotificationText.h">
+      <Filter>Geoscape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
