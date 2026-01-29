@@ -66,6 +66,8 @@ void AllocateTrainingState::doAfterBaseChange()
 	}
 	if (_minusPressed)
 	{
+		initList(0); // needed to add the arrows even if we hide them just after (may crash otherwise)
+		_btnMinus->setPressed(_minusPressed);
 		_minusPressed = false;
 		_btnMinus->setPressed(true);
 	}
@@ -161,7 +163,6 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 		_btnPlus->onMouseClick((ActionHandler)&AllocateTrainingState::btnPlusClick, 0);
 	}
 
-	_btnMinus->setPressed(false);
 	_btnMinus->onMouseClick((ActionHandler)&AllocateTrainingState::btnMinusClick, 0);
 
 	_txtTitle->setBig();
@@ -374,10 +375,11 @@ void AllocateTrainingState::init()
 		_doNotReset = false;
 		return;
 	}
-	addNavigationButtons(this, _lstSoldiers);
-
 	_btnMinus->setListAndBase(_lstSoldiers, _base);
 	_btnMinus->setFilter(trainingFilter);
+	_btnMinus->setPressed(false);
+	addNavigationButtons(this, _lstSoldiers);
+
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
 
 	if ( _movingBases)

@@ -32,6 +32,36 @@ void FilterToggleButton::setListAndBase(TextList* list, Base* base)
 	_list = list;
 	_base = base;
 	_lastOffset = noOffset;
+	_arrowsPos = list->getArrowPos();
+	_arrowsVisible = (_arrowsPos >= 0);
+}
+
+void FilterToggleButton::handleArrows()
+{
+	if (getPressed() && _arrowsVisible)
+	{
+		_list->setArrowColumn(-1, ARROW_VERTICAL);
+		_arrowsVisible = false;
+	}
+	else if (!getPressed() && !_arrowsVisible)
+	{
+		_list->setArrowColumn(_arrowsPos, ARROW_VERTICAL);
+		_arrowsVisible = true;
+	}	
+}
+
+void FilterToggleButton::mouseClick(Action* action, State* state)
+{
+	ToggleTextButton::mouseClick(action, state);
+	if (_arrowsPos >= 0)
+		handleArrows();
+}
+
+void FilterToggleButton::setPressed(bool pressed)
+{
+	ToggleTextButton::setPressed(pressed);
+	if (_arrowsPos >= 0)
+		handleArrows();
 }
 
 Soldier* FilterToggleButton::getSoldierAt(size_t index) const

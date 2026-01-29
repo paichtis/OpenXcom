@@ -27,6 +27,7 @@ namespace OpenXcom
 class Soldier;
 class TextList;
 class Base;
+class Action;
 
 /**
  * @brief a specialiszed version of ToggleTextButton to filter soldiers
@@ -42,12 +43,15 @@ class FilterToggleButton : public ToggleTextButton
 	bool _hasFilter = false;
 	FilterFunction _filter;
 
-	TextList* _list;
-	Base* _base;
+	TextList* _list = nullptr;
+	Base* _base = nullptr;
 
+	int _arrowsPos = -1;
+	bool _arrowsVisible = true;
 
 	// internal getter to shorten the code
 	inline Soldier* _getSld(size_t index) const;
+	void handleArrows();
 
  public:
 	FilterToggleButton(int width, int height, int x, int y) : ToggleTextButton(width, height, x, y)
@@ -60,7 +64,7 @@ class FilterToggleButton : public ToggleTextButton
 		_hasFilter = true;
 	}
 	void setListAndBase(TextList* list, Base* base);
-
+	void mouseClick(Action* action, State* state) override;
 
 
 	bool ignore(const Soldier* sol) const {	return getPressed() && _hasFilter && _filter(sol); }
@@ -68,6 +72,7 @@ class FilterToggleButton : public ToggleTextButton
 	Soldier* getSelectedSoldier() const;
 	size_t getlastOffset() const { return _lastOffset; }
 	size_t calculateOffset(size_t index = -1) const;
+	void setPressed(bool pressed);
 };
 
 } // OpenXcom

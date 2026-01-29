@@ -66,6 +66,7 @@ void AllocatePsiTrainingState::doAfterBaseChange()
 	}
 	if (_minusPressed)
 	{
+		initList(0); // game would crach otherwise if user unpresses _btnMinus later (no arrows in list), so yeah we have to fill the list twice
 		_minusPressed = false;
 		_btnMinus->setPressed(true);
 	}
@@ -364,9 +365,9 @@ void AllocatePsiTrainingState::init()
 		_doNotReset = false;
 		return;
 	}
-	addNavigationButtons(this, _lstSoldiers);
 	_btnMinus->setFilter(psyFilter);
 	_btnMinus->setListAndBase(_lstSoldiers, _base);
+	addNavigationButtons(this, _lstSoldiers);
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
 	if (_movingBases)
 		doAfterBaseChange();
