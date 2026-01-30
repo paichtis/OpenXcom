@@ -131,6 +131,16 @@ int TextList::getArrowsRightEdge()
 }
 
 /**
+ * Gets the arrow position.
+ * @return arrow position.
+ */
+
+int TextList::getArrowPos() const
+{
+	return _arrowPos;
+}
+
+/**
  * Unpresses all the arrow buttons.
  * @param state Pointer to running state.
  */

@@ -78,6 +78,8 @@ public:
 	int getArrowsLeftEdge();
 	/// Gets the arrowsRightEdge.
 	int getArrowsRightEdge();
+	/// Gets the arrow position.
+	int getArrowPos() const;
 	/// Unpresses the surface.
 	void unpress(State *state) override;
 	/// Sets the text color of a certain cell.
