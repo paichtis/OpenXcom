@@ -1338,6 +1338,21 @@ std::string Craft::refuel()
 	return fuel;
 }
 
+int Craft::getMissingFuelItemsCount() const
+{
+	int missingFuelItems = 0;
+	if (_fuel < _stats.fuelMax)
+	{
+		const auto* item = _rules->getRefuelItem();
+		if (item != nullptr)
+		{
+			int needed = _stats.fuelMax - _fuel;
+			missingFuelItems = (int)ceil((double)(needed) / _rules->getRefuelRate());
+		}
+	}
+	return missingFuelItems;
+}
+
 /**
  * Rearms the craft's weapons by adding ammo every hour
  * while it's docked in the base.

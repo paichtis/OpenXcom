@@ -79,6 +79,8 @@ public:
 	BasePlacementErrors inUse() const;
 	/// Gets the facility's ammo count.
 	int getAmmo() const { return _ammo; }
+	/// Gets how much ammo is missing to full capacity.
+	int getAmmoMissing() const { return _rules->getAmmoMax() - _ammo; }
 	/// Sets the facility's ammo count.
 	void setAmmo(int ammo) { _ammo = ammo; }
 	/// Resets the helper flag.

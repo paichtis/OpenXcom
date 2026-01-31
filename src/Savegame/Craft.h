@@ -271,6 +271,8 @@ public:
 	void repair();
 	/// Refuels the craft.
 	std::string refuel();
+	/// Gets how many fuel items are missing.
+	int getMissingFuelItemsCount() const;
 	/// Rearms the craft.
 	const RuleItem* rearm();
 	/// Gets how many clips are missing for craft weapons.
