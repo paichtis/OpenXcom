@@ -1004,9 +1004,9 @@ int Craft::getFuelLimit() const
  * @param base Pointer to target base.
  * @return Fuel amount.
  */
-int Craft::getFuelLimit(Base *base) const
+int Craft::getFuelLimit(Target *target) const
 {
-	return (int)floor(getFuelConsumption(_stats.speedMax, 0) * getDistance(base) / _speedMaxRadian);
+	return (int)floor(getFuelConsumption(_stats.speedMax, 0) * getDistance(target) / _speedMaxRadian);
 }
 
 /**
