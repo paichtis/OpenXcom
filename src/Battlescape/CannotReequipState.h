@@ -110,6 +110,8 @@ class CannotReequipState : public State
 	MissingItemsMap* getMissingItems();
 	/// Adds or increases a missing item
 	bool addMissingItem(const RuleItem* rule, int amount);
+	/// Adds or increases a missing item
+	bool addMissingItem(const std::string& itemType, int amount);
 	/// calculates how many items (if any) are missing 
 	bool calculateMissingItem(const RuleItem* rule, int needed);
 	// Decreases the number of missing items by the bought amount.

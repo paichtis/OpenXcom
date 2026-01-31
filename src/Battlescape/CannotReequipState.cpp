@@ -312,6 +312,14 @@ bool CannotReequipState::addMissingItem(const RuleItem* rule, int amount)
 		it->second += amount;
 	return true;
 }
+
+
+bool CannotReequipState::addMissingItem(const std::string& itemType, int amount)
+{
+	const RuleItem* rule = _game->getMod()->getItem(itemType);
+	return addMissingItem(rule, amount);
+}
+
 /**
  *  calculates how many items (if any) are missing and adds them to the map if needed
  * @param rule Type of item.

@@ -1984,7 +1984,10 @@ void GeoscapeState::time30Minutes()
 										.arg(tr(item))
 										.arg(xcraft->getName(_game->getLanguage()))
 										.arg(xbase->getName());
-					popup(new CraftErrorState(this, msg));
+
+					CannotReequipState* cannotReequipState = CannotReequipState::create(xbase, xcraft->getName(_game->getLanguage()), msg, false);
+					cannotReequipState->addMissingItem(item, xcraft->getMissingFuelItemsCount());
+					_game->pushState(cannotReequipState);
 				}
 			}
 		}
@@ -2196,7 +2199,10 @@ void GeoscapeState::time1Hour()
 					.arg(tr(ammo->getType()))
 					.arg(tr(facility->getRules()->getType()))
 					.arg(xbase->getName());
-				popup(new CraftErrorState(this, msg));
+
+				CannotReequipState* cannotReequipState = CannotReequipState::create(xbase, "", msg, false);
+				cannotReequipState->addMissingItem(ammo, facility->getAmmoMissing());
+				_game->pushState(cannotReequipState);
 			}
 		}
 	}
