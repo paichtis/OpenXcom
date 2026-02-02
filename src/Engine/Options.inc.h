@@ -146,8 +146,8 @@ OPT bool oxceBaseFilterResearchable;
 OPT bool oxceBaseResearchReorder;
 OPT bool oxceBaseManufactureFallbackButton;
 OPT bool oxceBaseManufactureInfinityButton;
-OPT bool oxceBaseManufactureAlwaysFullProductionDetails;
 OPT bool oxceBaseTouchButtons;
+OPT bool oxceBaseManufactureAlwaysFullProductionDetails;
 
 OPT bool oxceDisableAlienInventory;
 OPT bool oxceDisableHitLog;
