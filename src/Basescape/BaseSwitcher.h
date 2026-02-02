@@ -41,6 +41,9 @@ class BaseSwitcher
 	size_t _validBasesCount;
 	Base* _bsbase = nullptr;
 
+	State* _parent = nullptr;
+	InteractiveSurface *_surface = nullptr;
+
   private:
 //	State* _parent = nullptr;
 	TextButton *_prevButton = nullptr, *_nextButton = nullptr; // Navigation buttons
@@ -57,6 +60,7 @@ class BaseSwitcher
 	void toggleNavigationButtons(bool show);
 	/// Calculates the number of valid bases, provided to be used by getValidBasesCount() when ignoreBase() is overridden.
 	size_t calculateValidBaseCount() const;
+	bool _ignoreBase(Base* base) const;
 
   protected:
 	 /// virtual function fine tuning the class behavior
@@ -75,14 +79,16 @@ class BaseSwitcher
 public:
 	/// Creates a new BaseSwitcher linked to a parent state and a base.
 	BaseSwitcher(Base* base);	
-	virtual ~BaseSwitcher();
+	virtual ~BaseSwitcher() = default;
 	/// Moves to the next/previous base.
 	void nextBase(int direction);
 	/// moves to base
 	void rebase(Base* base);
 
 	/// Adds navigation buttons if there are multiple bases.
-	void addNavigationButtons(State* parent, InteractiveSurface* surface);
+	void addNavigationButtons(State* parent, InteractiveSurface* surface, bool update = false);
+	/// updates navigation buttons
+	void updateNavigationButtons(State* parent, InteractiveSurface* surface);
 	/// hide and show navigation buttons
 	void hideNavigationButtons() { toggleNavigationButtons(false); }
 	void showNavigationButtons() { toggleNavigationButtons(true); }

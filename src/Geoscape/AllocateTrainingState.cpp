@@ -45,7 +45,7 @@ namespace OpenXcom
 
 bool AllocateTrainingState::ignoreBase(Base* base) const
 {	// ignore bases with no soldiers and no training ability
-	return base->getSoldiers()->size() <= 0 || base->getAvailableTraining() <= 0;
+	return base->getSoldiers()->size() <= 0 || base->getAvailableTraining() <= ( _onlyWithFreeCapacity ? base->getUsedTraining() : 0 );	
 }
 
 void AllocateTrainingState::doBeforeBaseChange()
@@ -58,6 +58,8 @@ void AllocateTrainingState::doBeforeBaseChange()
 
 void AllocateTrainingState::doAfterBaseChange()
 {
+	bool saveOnlyWithFreeCapacity = _onlyWithFreeCapacity;
+	_onlyWithFreeCapacity = false; // forces creation of buttons
 	_movingBases = false;
 	if (_plusPressed) // NO we can't simply do _btnPlus(_plusPressed)
 	{
@@ -69,7 +71,6 @@ void AllocateTrainingState::doAfterBaseChange()
 		initList(0); // needed to add the arrows even if we hide them just after (may crash otherwise)
 		_btnMinus->setPressed(_minusPressed);
 		_minusPressed = false;
-		_btnMinus->setPressed(true);
 	}
 	if (_selectedSort > 0)
 	{
@@ -77,9 +78,10 @@ void AllocateTrainingState::doAfterBaseChange()
 		_cbxSortBy->setSelected(_selectedSort);
 		cbxSortByChange(nullptr);
 		_selectedSort = -1;
-		return; // already doing initList
+		return; // already doing initList in cbxSortByChange
 	}
 	initList(0);
+	_onlyWithFreeCapacity = saveOnlyWithFreeCapacity;
 }
 
 bool AllocateTrainingState::BaseSwitcherReverse() const
@@ -247,6 +249,11 @@ AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : 
 	_lstSoldiers->onMouseClick((ActionHandler)&AllocateTrainingState::lstSoldiersClick);
 	_lstSoldiers->onMouseClick((ActionHandler)&AllocateTrainingState::lstSoldiersClick, SDL_BUTTON_RIGHT);
 	_lstSoldiers->onMousePress((ActionHandler)&AllocateTrainingState::lstSoldiersMousePress);
+
+	_lstSoldiers->onKeyboardPress((ActionHandler)&AllocateTrainingState::toggleOnlyWithFreeCapacity, SDLK_LCTRL);
+	_lstSoldiers->onKeyboardRelease((ActionHandler)&AllocateTrainingState::toggleOnlyWithFreeCapacity, SDLK_LCTRL);
+	_lstSoldiers->onKeyboardPress((ActionHandler)&AllocateTrainingState::toggleOnlyWithFreeCapacity, SDLK_RCTRL);
+	_lstSoldiers->onKeyboardRelease((ActionHandler)&AllocateTrainingState::toggleOnlyWithFreeCapacity, SDLK_RCTRL);
 }
 
 /**
@@ -379,12 +386,12 @@ void AllocateTrainingState::init()
 	_btnMinus->setFilter(trainingFilter);
 	_btnMinus->setPressed(false);
 	addNavigationButtons(this, _lstSoldiers);
+	if (_onlyWithFreeCapacity)
+		toggleOnlyWithFreeCapacity(nullptr);
 
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
 
-	if ( _movingBases)
-		doAfterBaseChange();
-	else
+	if(!_movingBases)
 		initList(0);
 }
 
@@ -725,6 +732,12 @@ void AllocateTrainingState::btnAssignAllSoldiersClick(Action* action)
 		row++;
 	}
 	_txtRemaining->setText(tr("STR_REMAINING_TRAINING_FACILITY_CAPACITY").arg(_space));
+}
+
+void AllocateTrainingState::toggleOnlyWithFreeCapacity(Action* action)
+{
+	_onlyWithFreeCapacity = _game->isCtrlPressed();
+	updateNavigationButtons(this, _lstSoldiers);
 }
 
 }

@@ -34,6 +34,13 @@
 
 namespace OpenXcom {
 
+bool BaseSwitcher::_ignoreBase(Base* base) const
+{
+	if (base == _bsbase) // current base is never ignored !
+		return false;
+	return ignoreBase(base);
+}
+
 size_t BaseSwitcher::getBaseIndex(Base* base) const
 {
 	const std::vector<Base*>* bases = State::_game->getSavedGame()->getBases();
@@ -59,7 +66,7 @@ size_t BaseSwitcher::nextBaseIndex(int direction) const
 	do
 	{
 		currentIndex = (currentIndex + bases->size() + direction) % bases->size();
-	} while (ignoreBase((*bases)[currentIndex]));
+	} while (_ignoreBase((*bases)[currentIndex]));
 
 	return currentIndex;
 }
@@ -88,7 +95,7 @@ size_t BaseSwitcher::calculateValidBaseCount() const
 	const std::vector<Base*>* bases = State::_game->getSavedGame()->getBases();
 	for (auto base : *bases)
 	{
-		if (!ignoreBase(base))
+		if (!_ignoreBase(base))
 		{
 			++count;
 		}
@@ -114,48 +121,103 @@ void BaseSwitcher::toggleNavigationButtons(bool show)
 		_prevText->setVisible(show && getValidBasesCount() > 1);
 }
 
+/**
+* Adds navigation buttons if there are multiple bases.
+ * @param parent The parent state to add the buttons to.
+ * @param surface The interactive surface to bind keyboard events to.
+ * @param update Whether this is an update call.
+ */
 
-/// Adds navigation buttons if there are multiple bases.
-void BaseSwitcher::addNavigationButtons(State* parent, InteractiveSurface *surface)
+void BaseSwitcher::addNavigationButtons(State* parent, InteractiveSurface *surface, bool update)
 {
-	_moved = false;
+	if (!update)
+	{
+		_moved = false;
+		doAfterBaseChange();
+	}
+	if (_parent != parent )
+	{
+		_parent = parent;
+		if (update)
+		{
+			throw std::runtime_error("BaseSwitcher::addNavigationButtons() called with different parent state in update mode");
+		}
+	}
+	if (_surface != surface)
+	{
+		_surface = surface;
+		if (update)
+		{
+			throw std::runtime_error("BaseSwitcher::addNavigationButtons() called with different surface in update mode");
+		}
+	}
 	_validBasesCount = calculateValidBaseCount(); 
 	if (_validBasesCount <= 1 || !allowSwitching())
+	{
+		if (update)
+		{	// hide navigation buttons
+			toggleNavigationButtons(false);
+		}
 		return;
-	
-	_nextButton = new TextButton(10, 8, 310, 0);
-	_nextText = new Text(100, 8, 210, 0);
-	parent->add(_nextButton);
-	parent->add(_nextText);
-	 
-	_nextButton->setText("->");
-	_nextButton->setAlign(ALIGN_RIGHT);
-	_nextText->setSmall();
-	_nextText->setAlign(ALIGN_RIGHT);
-	_nextText->setText(getBaseName(1));
+	}
+
 	Uint8 ammoColor = State::_game->getMod()->getInterface("sellMenu")->getElement("ammoColor")->color;
-	_nextText->setColor(ammoColor); // using ammo color for lack of better
-	_nextButton->onMouseClick(getNextButtonHandler());
-	surface->onKeyboardPress(getNextButtonHandler(), SDLK_PAGEDOWN);
+
+	if (!_nextButton)
+	{
+		_nextButton = new TextButton(10, 8, 310, 0);
+		_nextText = new Text(100, 8, 210, 0);
+		_parent->add(_nextButton);
+		_parent->add(_nextText);
+
+		_nextButton->setText("->");
+		_nextButton->setAlign(ALIGN_RIGHT);
+		_nextText->setSmall();
+		_nextText->setAlign(ALIGN_RIGHT);
+		_nextText->setColor(ammoColor); // using ammo color for lack of better
+		_nextButton->onMouseClick(getNextButtonHandler());
+		if (!update)
+			_surface->onKeyboardPress(getNextButtonHandler(), SDLK_PAGEDOWN);
+	}
+	_nextText->setText(getBaseName(1));
+	_nextButton->setVisible(true);
+	_nextText->setVisible(true);
 	
 	if (_validBasesCount <= 2) // 2 bases only --> no need for previous button
+	{
+		if (_prevButton && _prevText)
+		{
+			_prevButton->setVisible(false);
+			_prevText->setVisible(false);
+		}
 		return;
+	}
 
-	_prevText = new Text(100, 8, 10, 0);
-	_prevButton = new TextButton(10, 8, 0, 0);
-	parent->add(_prevButton);
-	parent->add(_prevText);
+	if(!_prevButton)
+	{
+		_prevText = new Text(100, 8, 10, 0);
+		_prevButton = new TextButton(10, 8, 0, 0);
+		_parent->add(_prevButton);
+		_parent->add(_prevText);
 
-	_prevButton->setText("<-");
-	_prevButton->setAlign(ALIGN_LEFT);
-	_prevText->setSmall();
-	_prevText->setAlign(ALIGN_LEFT);
+		_prevButton->setText("<-");
+		_prevButton->setAlign(ALIGN_LEFT);
+		_prevText->setSmall();
+		_prevText->setAlign(ALIGN_LEFT);
+		_prevText->setColor(ammoColor); // using ammo color for lack of better
+
+		_prevButton->onMouseClick(getPrevButtonHandler());
+		if (!update)
+			_surface->onKeyboardPress(getPrevButtonHandler(), SDLK_PAGEUP);
+	}
 	_prevText->setText(getBaseName(-1));
-	_prevText->setColor(ammoColor); // using ammo color for lack of better
+	_prevButton->setVisible(true);
+	_prevText->setVisible(true);
+}
 
-	_prevButton->onMouseClick(getPrevButtonHandler());
-	surface->onKeyboardPress(getPrevButtonHandler(), SDLK_PAGEUP);
-	doAfterBaseChange();
+void BaseSwitcher::updateNavigationButtons(State* parent, InteractiveSurface *surface)
+{
+	addNavigationButtons(parent, surface, true);
 }
 
 /// Creates a new BaseSwitcher linked to a parent state and a base.
@@ -163,24 +225,6 @@ BaseSwitcher::BaseSwitcher(Base* base)
 {
 	_bsbase = base;
 	_baseIndex = getBaseIndex(base);
-}
-
-
-/*
- * Cleans up the base switcher.
- */
-BaseSwitcher::~BaseSwitcher()
-{
-	#if 0
-	if (_nextButton)
-		delete _nextButton;
-	if (_nextText)
-		delete _nextText;
-	if (_prevButton)
-		delete _prevButton;
-	if (_prevText)
-		delete _prevText;
-	#endif
 }
 
 void BaseSwitcher::doBeforeBaseChange()

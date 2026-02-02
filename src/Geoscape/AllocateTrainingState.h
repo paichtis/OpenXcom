@@ -65,6 +65,7 @@ private:
 	inline static bool _plusPressed = false;
 	inline static bool _minusPressed = false;
 	inline static bool _movingBases = false;
+	inline static bool _onlyWithFreeCapacity = false;
 	bool _allowSwitching;
 	inline static bool _lastSortShiftPressed = false;
 	bool BaseSwitcherReverse() const;
@@ -75,6 +76,7 @@ private:
 	void doAfterBaseChange() override;
 	void doPush(Base* base) override;
 
+	
 	bool ignoreBase(Base* base) const override;
 
 	BASE_SWITCHER_HANDLERS(AllocateTrainingState);
@@ -114,6 +116,9 @@ public:
 	void btnDeassignAllSoldiersClick(Action* action);
 	/// Handler for clicking the Assign All Soldiers button.
 	void btnAssignAllSoldiersClick(Action* action);
+	/// Handler when ctrl is pressed to toggle onlyWithFreeCapacity
+	void toggleOnlyWithFreeCapacity(Action* action);
+
 };
 
 }
