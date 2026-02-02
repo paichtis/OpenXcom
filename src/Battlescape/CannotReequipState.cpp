@@ -222,7 +222,7 @@ bool CannotReequipState::deleteIfEmpty()
 }
 
 /**
- * @brief Pushes the state to the state manager if there are missing items, deletes it otherwise.
+ * @brief Pushes the state to the state manager if there are missing items (true), deletes it otherwise.(false)
  * @param popCurrentState shall we pop the current state before pushing the new one ?
  * @return true if the state was pushed, false if deleted. 
  */
@@ -330,6 +330,12 @@ bool CannotReequipState::addMissingItem(const std::string& itemType, int amount)
 bool CannotReequipState::calculateMissingItem(const RuleItem* rule, int needed)
 {
 	return addMissingItem(rule, needed - _base->getStorageItems()->getItem(rule));
+}
+
+bool CannotReequipState::calculateMissingItem(const std::string& itemType, int needed)
+{
+	const RuleItem* rule = _game->getMod()->getItem(itemType);
+	return calculateMissingItem(rule, needed);
 }
 
 /**

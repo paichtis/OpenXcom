@@ -114,6 +114,8 @@ class CannotReequipState : public State
 	bool addMissingItem(const std::string& itemType, int amount);
 	/// calculates how many items (if any) are missing 
 	bool calculateMissingItem(const RuleItem* rule, int needed);
+	/// calculates how many items (if any) are missing 
+	bool calculateMissingItem(const std::string& itemType, int needed);
 	// Decreases the number of missing items by the bought amount.
 	bool decreaseMissingItem(const RuleItem* rule, int amount);
 	// Checks if an item is missing.

@@ -303,8 +303,7 @@ void PlaceFacilityState::viewClick(Action *)
 					int needed = (item.second.first - refundItemsTemp[item.first]) - _base->getStorageItems()->getItem(item.first);
 					if (needed > 0)
 					{
-						RuleItem* rule = _game->getMod()->getItem(item.first);
-						cannotReequipState->addMissingItem(rule, needed);
+						cannotReequipState->addMissingItem(item.first, needed);
 					}
 				}
 				if (cannotReequipState->pushOrDeleteIfEmpty(true))
