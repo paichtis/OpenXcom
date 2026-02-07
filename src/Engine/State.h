@@ -97,13 +97,13 @@ public:
 	/// Resets all the state surfaces.
 	void resetAll();
 	/// Get the localized text.
-	LocalizedText tr(const std::string &id) const;
+	static LocalizedText tr(const std::string &id);
 	/// Get the localized text.
-	LocalizedText trAlt(const std::string &id, int alt) const;
+	static LocalizedText trAlt(const std::string &id, int alt);
 	/// Get the localized text.
-	LocalizedText tr(const std::string &id, unsigned n) const;
+	static LocalizedText tr(const std::string &id, unsigned n);
 	/// Get the localized text.
-	LocalizedText tr(const std::string &id, SoldierGender gender) const;
+	static LocalizedText tr(const std::string &id, SoldierGender gender);
 	/// redraw all the text-type surfaces.
 	void redrawText();
 	/// does the state only have one text list (to scroll)?
