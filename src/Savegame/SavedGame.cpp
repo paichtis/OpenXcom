@@ -123,7 +123,7 @@ SavedGame::SavedGame() :
 	_expenditures.push_back(0);
 	_lastselectedArmor="STR_NONE_UC";
 
-	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j) // <= instead of < because we have a hidden loadout for missions
 	{
 		_globalCraftLoadout[j] = new ItemContainer();
 	}
@@ -184,7 +184,7 @@ SavedGame::~SavedGame()
 			delete entry;
 		}
 	}
-	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
 	{
 		delete _globalCraftLoadout[j];
 	}
@@ -719,7 +719,7 @@ void SavedGame::loadTemplates(const YAML::YamlNodeReader& reader, const Mod* mod
 			_globalEquipmentLayoutArmor[j] = layoutArmor.readVal<std::string>();
 	}
 
-	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
 	{
 		if (const auto& loadout = reader[ryml::to_csubstr("globalCraftLoadout" + std::to_string(j))])
 			_globalCraftLoadout[j]->load(loadout, mod);
@@ -866,7 +866,7 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 		if (!_globalEquipmentLayoutArmor[j].empty())
 			writer.write(writer.saveString("globalEquipmentLayoutArmor" + std::to_string(j)), _globalEquipmentLayoutArmor[j]);
 	}
-	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
 	{
 		if (!_globalCraftLoadout[j]->getContents()->empty())
 			_globalCraftLoadout[j]->save(writer[writer.saveString("globalCraftLoadout" + std::to_string(j))]);

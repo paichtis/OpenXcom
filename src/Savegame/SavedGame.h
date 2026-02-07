@@ -169,8 +169,8 @@ private:
 	std::string _globalEquipmentLayoutName[MAX_EQUIPMENT_LAYOUT_TEMPLATES];
 	std::string _globalEquipmentLayoutArmor[MAX_EQUIPMENT_LAYOUT_TEMPLATES];
 	std::vector<EquipmentLayoutItem*> _globalEquipmentLayout[MAX_EQUIPMENT_LAYOUT_TEMPLATES];
-	std::string _globalCraftLoadoutName[MAX_CRAFT_LOADOUT_TEMPLATES];
-	ItemContainer *_globalCraftLoadout[MAX_CRAFT_LOADOUT_TEMPLATES];
+	std::string _globalCraftLoadoutName[MAX_CRAFT_LOADOUT_TEMPLATES+1];
+	ItemContainer *_globalCraftLoadout[MAX_CRAFT_LOADOUT_TEMPLATES+1];
 	std::vector<MissionStatistics*> _missionStatistics;
 	std::set<int> _ignoredUfos;
 	std::set<const RuleItem *> _autosales;
