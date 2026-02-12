@@ -43,6 +43,8 @@ public:
 	~ItemContainer();
 	/// Loads the item container from YAML.
 	void load(const YAML::YamlNodeReader& reader, const Mod* mod);
+	/// copies the content of another ItemContainer
+	void copy(const ItemContainer* items) { _qty = *(items->getContents()); }
 	/// Saves the item container to YAML.
 	void save(YAML::YamlNodeWriter writer) const;
 	/// Adds an item to the container.
