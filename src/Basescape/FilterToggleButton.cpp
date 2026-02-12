@@ -27,6 +27,61 @@ inline Soldier* FilterToggleButton::_getSld(size_t index) const
 {
 	return _base->getSoldiers()->at(index);
 }
+
+
+FilterToggleButton::FilterToggleButton(int width, int height, int x, int y) : ToggleTextButton(width, height, x, y)
+{
+	setText("-");
+	_filter = [this](const Soldier* sol)	{ return true; }; // default filter
+}
+
+void FilterToggleButton::setFilter(FilterFunction filter)
+{
+	_filter = filter;
+	_hasFilter = true;
+}
+
+void FilterToggleButton::andFilter(FilterFunction filter)
+{
+	FilterFunction previous = _filter;
+	_filter = [previous, filter](const Soldier* sol)
+	{
+		return previous(sol) && filter(sol);
+	};
+	_hasFilter = true;
+}
+
+void FilterToggleButton::orFilter(FilterFunction filter)
+{
+	FilterFunction previous = _filter;
+	_filter = [previous, filter](const Soldier* sol)
+	{
+		return previous(sol) || filter(sol);
+	};
+	_hasFilter = true;
+}
+
+
+void FilterToggleButton::xorFilter(FilterFunction filter)
+{
+	FilterFunction previous = _filter;
+	_filter = [previous, filter](const Soldier* sol)
+	{
+		return previous(sol) != filter(sol);
+	};
+	_hasFilter = true;
+}
+
+void FilterToggleButton::notFilter(FilterFunction filter)
+{
+	_filter = [filter](const Soldier* sol)
+	{
+		return !filter(sol);
+	};
+	_hasFilter = true;
+}
+
+
 void FilterToggleButton::setListAndBase(TextList* list, Base* base)
 {
 	_list = list;
@@ -38,6 +93,16 @@ void FilterToggleButton::setListAndBase(TextList* list, Base* base)
 
 void FilterToggleButton::handleArrows()
 {
+	if (_arrowsPos < 0)
+	{
+		if (_list->getArrowPos() >= 0)
+		{   // if arrows are visible but we don't know where they are, hide them anyway if we're filtering
+			if (getPressed()) 
+				_list->setArrowColumn(-1, ARROW_VERTICAL);
+		}
+		return; 
+	}
+		
 	if (getPressed() && _arrowsVisible)
 	{
 		_list->setArrowColumn(-1, ARROW_VERTICAL);
@@ -47,21 +112,21 @@ void FilterToggleButton::handleArrows()
 	{
 		_list->setArrowColumn(_arrowsPos, ARROW_VERTICAL);
 		_arrowsVisible = true;
-	}	
+	}
 }
 
 void FilterToggleButton::mouseClick(Action* action, State* state)
 {
+	if (_pressedEnforced)
+		return;
 	ToggleTextButton::mouseClick(action, state);
-	if (_arrowsPos >= 0)
-		handleArrows();
+	handleArrows();
 }
 
 void FilterToggleButton::setPressed(bool pressed)
 {
 	ToggleTextButton::setPressed(pressed);
-	if (_arrowsPos >= 0)
-		handleArrows();
+	handleArrows();
 }
 
 Soldier* FilterToggleButton::getSoldierAt(size_t index) const
@@ -94,6 +159,15 @@ size_t FilterToggleButton::calculateOffset(size_t index) const
 	else
 		getSoldierAt(index);
 	return _lastOffset;
+}
+
+
+/// forces the button to stay pressed 
+void FilterToggleButton::enforcePressed(bool force)
+{
+	_pressedEnforced = force;
+	if (force && !getPressed()) // TODO : handle color change ?
+		setPressed(true);
 }
 
 } //namespace OpenXcom

@@ -45,34 +45,46 @@ class FilterToggleButton : public ToggleTextButton
 
 	TextList* _list = nullptr;
 	Base* _base = nullptr;
+	bool _pressedEnforced = false;
+
 
 	int _arrowsPos = -1;
 	bool _arrowsVisible = true;
+
 
 	// internal getter to shorten the code
 	inline Soldier* _getSld(size_t index) const;
 	void handleArrows();
 
  public:
-	FilterToggleButton(int width, int height, int x, int y) : ToggleTextButton(width, height, x, y)
-	{
-		setText("-");
-	}
-	void setFilter(FilterFunction filter)
-	{
-		_filter = filter;
-		_hasFilter = true;
-	}
+	FilterToggleButton(int width, int height, int x, int y);
+
+	// set, and, or, xor and not filter functions
+	void setFilter(FilterFunction filter);
+	void andFilter(FilterFunction filter);
+	void orFilter(FilterFunction filter);
+	void xorFilter(FilterFunction filter);
+	void notFilter(FilterFunction filter);
+
+	// link to the list and base to filter
 	void setListAndBase(TextList* list, Base* base);
+	// override mouseClick to update the list
 	void mouseClick(Action* action, State* state) override;
 
-
+	// check if a soldier should be ignored
 	bool ignore(const Soldier* sol) const {	return getPressed() && _hasFilter && _filter(sol); }
+
+	// Soldier accessors
 	Soldier* getSoldierAt(size_t index) const;
 	Soldier* getSelectedSoldier() const;
+
+	// offset calculation and caching
 	size_t getlastOffset() const { return _lastOffset; }
 	size_t calculateOffset(size_t index = -1) const;
+
+	// press/unpress button making sure to update arrows
 	void setPressed(bool pressed);
+	void enforcePressed(bool force = true);
 };
 
 } // OpenXcom
