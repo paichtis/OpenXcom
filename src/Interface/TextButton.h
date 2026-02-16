@@ -18,6 +18,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../Engine/InteractiveSurface.h"
+#include "Text.h"
 
 namespace OpenXcom
 {
@@ -27,7 +28,6 @@ class Font;
 class Language;
 class Sound;
 class ComboBox;
-enum TextHAlign;
 
 /**
  * Coloured button with a text label.
