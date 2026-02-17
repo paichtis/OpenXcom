@@ -132,6 +132,7 @@ void CraftsState::init()
 void CraftsState::initList(size_t scrl)
 {
 	_lstCrafts->clearList();
+	int disabledColor = 8; // gray
 	for (const auto* craft : *_base->getCrafts())
 	{
 		std::ostringstream ss, ss2, ss3;
@@ -139,6 +140,8 @@ void CraftsState::initList(size_t scrl)
 		ss2 << craft->getNumTotalSoldiers();
 		ss3 << craft->getNumTotalVehicles();
 		_lstCrafts->addRow(5, craft->getName(_game->getLanguage()).c_str(), tr(craft->getStatus()).c_str(), ss.str().c_str(), ss2.str().c_str(), ss3.str().c_str());
+		if (craft->getStatus() == "STR_OUT")
+			_lstCrafts->setRowColor(_lstCrafts->getLastRowIndex(), disabledColor);
 	}
 
 	if (scrl)
