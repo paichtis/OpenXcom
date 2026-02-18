@@ -133,6 +133,8 @@ public:
 	int getRankSpriteTiny() const;
 	/// Gets the soldier's rank.
 	SoldierRank getRank() const;
+	/// is Soldier a commander ?
+	bool isCommander() const;
 	/// Increase the soldier's military rank.
 	void promoteRank();
 	/// Promotes/demotes a soldier to a specific rank.
@@ -196,6 +198,9 @@ public:
 	bool hasFullHealth() const;
 	/// Is the soldier capable of defending a base?.
 	bool canDefendBase() const;
+
+	// is the soldier out in base ? (in craft)
+	bool isOutOfBase() const;
 
 	/// Gets the amount of missing mana.
 	int getManaMissing() const;

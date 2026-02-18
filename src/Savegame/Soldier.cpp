@@ -716,6 +716,16 @@ SoldierRank Soldier::getRank() const
 }
 
 /**
+ * @brief checks if the soldier is a commander
+ * @return true if the soldier is a commander
+ */
+
+bool Soldier::isCommander() const
+{
+	return _rank == RANK_COMMANDER;
+}
+
+/**
  * Increase the soldier's military rank.
  */
 void Soldier::promoteRank()
@@ -1614,7 +1624,7 @@ bool Soldier::isInTraining() const
 
 bool Soldier::isAvailableForTraining(bool ignoreQueued) const
 {
-	return (hasFullHealth() && !isFullyTrained() && !getDeath() && !isInTraining()) || (ignoreQueued || getReturnToTrainingWhenHealed() ) ;
+	return (hasFullHealth() && !isFullyTrained() && !getDeath() && !isInTraining()); //|| (ignoreQueued || getReturnToTrainingWhenHealed() ) ;
 }
 
 
@@ -1624,6 +1634,16 @@ bool Soldier::isAvailableForTraining(bool ignoreQueued) const
 void Soldier::setTraining(bool training)
 {
 	_training = training;
+}
+
+
+/**
+ * @brief checks if the soldier is out of base (for instance in a craft out of base)
+ * @return true if out
+ */
+
+bool Soldier::isOutOfBase() const {
+	return _craft && _craft->getStatus() == "STR_OUT";
 }
 
 /**
