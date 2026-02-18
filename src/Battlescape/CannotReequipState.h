@@ -56,7 +56,6 @@ class CannotReequipState : public State
 		}
 	};
   private:
-	//std::vector<ReequipStat> _missingItems;
 	using MissingItemsMap = std::map<const RuleItem*, int, CannotReequipState::RuleComparator>;
 	MissingItemsMap _missingItemsMap;
 	Base *_base;

@@ -276,6 +276,9 @@ en-US:
   STR_WHAT_CAN_I_WEAR: "What can I wear?"
   STR_STARTING_CONDITION_ARMORS_FORBIDDEN: "This mission requires specific gear.{NEWLINE}{NEWLINE}Forbidden armor types are: {0}"
   STR_STARTING_CONDITION_ARMORS_ALLOWED: "This mission requires specific gear.{NEWLINE}{NEWLINE}Allowed armor types are: {0}"
+#CannotReequipState.cpp
+  STR_TRANSFERT_IN: "Transfer In"
+  STR_IN_TRANSIT: "IN TRANSIT"
 #ConfirmEndMissionState.cpp
   STR_MISSION_OVER: "Mission complete."
   STR_UNITS_WITH_FATAL_WOUNDS:
@@ -523,6 +526,13 @@ en-US:
   STR_PILOT_MISSING: "PILOT MISSING"
   STR_DAY_SHORT: "{0}d"
   STR_HOUR_SHORT: "{0}h"
+  STR_STEP: " (Step {0})"
+  STR_GO_TO_NEXT_STEP: "NEXT STEP"
+  STR_EQUIP_CRAFT_FOR_MISSION_CONFIRMATION: "Add required items to {0} for the mission?"
+#MissionPlanning.cpp
+  STR_CONFIRM_ABORT_MISSION_PLANNING: "Do you really want to abort the mission plannig ?"
+  STR_RESTORE_PREMISSION_STATE: "Try restore the craft to its pre-mission state ?"
+  STR_SAVED_PREMISSION_LOADOUT: "Saved the craft's pre-mission equipment"
 #MonthlyReportState.cpp
   STR_PERFORMANCE_BONUS: "Performance Bonus"
   STR_COUNTRY_HAS_CANCELLED_A_SECRET_PACT: "{0} has renounced the pact with alien forces and was allowed to return to the project."
@@ -538,6 +548,7 @@ en-US:
   STR_NOT_ENOUGH_LIVING_SPACE_AT_BASE: "Not enough living space to accomodate{NEWLINE}{0}{NEWLINE}at{NEWLINE}{1}"
 #TargetInfoState.cpp
   STR_INFO: "INFO"
+  STR_PREPARE_MISSION: "PREPARE MISSION"
   STR_DESPAWN_PENALTY: "Despawn penalty> {0}"
 #TrainingFinishedState.cpp
   STR_TRAINING_FINISHED: "Training Finished{NEWLINE}at {0}"

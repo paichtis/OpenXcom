@@ -162,7 +162,7 @@ void CannotReequipState::delayedInit()
 
 	_txtQuantity->setText(tr("STR_QUANTITY_UC"));
 
-	_txtCraft->setText(tr("STR_CRAFT"));
+	_txtCraft->setText(tr("STR_IN_TRANSIT"));
 
 	_lstItems->setColumns(3, 162, 46, 80);
 	_lstItems->setSelectable(true);
@@ -187,15 +187,42 @@ void CannotReequipState::init()
 	delayedInit();
 	State::init();
 
-	_lstItems->clearList();
+	// first create a map with all missing items already in transit 
+	std::map<const RuleItem*, int> transfers;
+	auto baseTransfers = *_base->getTransfers();
+	if ( !_missingItemsMap.empty())
+	{
+		for (auto transfer : baseTransfers)
+		{
+			auto rule = transfer->getItems();
+			auto it = _missingItemsMap.find(rule);
 
+			auto itt = transfers.find(rule);
+			if (itt == transfers.end())
+			{
+				transfers[rule] = it->second;
+			}
+			else
+				transfers[rule] += it->second;
+		}
+	}
+
+	_lstItems->clearList();
 	for (const auto& pair : _missingItemsMap)
 	{
 		if (pair.second > 0)
 		{
 			std::ostringstream ss;
-			ss << pair.second;
-			_lstItems->addRow(3, tr(pair.first->getType()).c_str(), ss.str().c_str(), _craftName);
+			ss << pair.second; // missing quantity
+
+			std::ostringstream ssTransferts;
+			auto it = transfers.find(pair.first);
+			if (it != transfers.end())
+				ssTransferts << it->second;  // in transit
+			else
+				ssTransferts << 0;
+
+			_lstItems->addRow(3, tr(pair.first->getType()).c_str(), ss.str().c_str(), ssTransferts.str().c_str());
 		}
 		else
 			_missingItemsMap.erase(pair.first); // remove items with no missing qty
