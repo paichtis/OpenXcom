@@ -19,9 +19,13 @@
  */
 
 #include "../Engine/State.h"
+#include <functional>
 
 namespace OpenXcom
 {
+
+class TextButton;
+class Text;
 
 /**
  * @brief a class displaying a confirmation dialog. Can be derived for more specialized behavior
@@ -29,14 +33,28 @@ namespace OpenXcom
 
 class ConfirmationDialogState : public State
 {
+  public:
+	using doAction = std::function<bool(void*)>;
  protected:
-	 // function to be overloaded called on pressing yes or cancel buttons
-	 // @return : true if this state has to be popep
-	virtual bool onCancel() { return true;  }
-	virtual bool onYes()	{ return true; }
+	Window* _window;
+	Text* _txtMessage;
+	TextButton *_btnNo, *_btnYes;
+
+	doAction _onYesAction, _onNoAction;
+	bool _actionsSet = false;
+
+	static bool defaultNo(void*)	{ return true;  }
+	static bool defaultYes(void*)	{ return true; }
 
  public:
-
+	/// Creates the Select Destination state.
+   ConfirmationDialogState(const std::string& message, const std::string& interface, doAction yesAction = defaultYes, doAction noAction = defaultNo);
+	/// Cleans up the Select Destination state.
+   ~ConfirmationDialogState() = default;
+	/// Handler for clicking the Cancel button.
+	void btnNoClick(Action* action);
+	/// Handler for clicking the Cydonia mission button.
+	void btnYesClick(Action* action);
 };
 
 } // namespace OpenXcom
