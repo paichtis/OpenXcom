@@ -36,6 +36,7 @@ class Action;
 class FilterToggleButton : public ToggleTextButton
 {
 	static const size_t noOffset = 0;
+	static const Uint8 grey = 8;
  public:
 	using FilterFunction = std::function<bool(const Soldier*)>;
  private:

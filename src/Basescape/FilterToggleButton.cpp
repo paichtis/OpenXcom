@@ -117,10 +117,13 @@ void FilterToggleButton::handleArrows()
 
 void FilterToggleButton::mouseClick(Action* action, State* state)
 {
-	if (_pressedEnforced)
-		return;
-	ToggleTextButton::mouseClick(action, state);
-	handleArrows();
+	if (!_pressedEnforced)
+	{
+		ToggleTextButton::mouseClick(action, state);
+		handleArrows();
+	}
+	else
+		setPressed(true);
 }
 
 void FilterToggleButton::setPressed(bool pressed)
@@ -166,8 +169,11 @@ size_t FilterToggleButton::calculateOffset(size_t index) const
 void FilterToggleButton::enforcePressed(bool force)
 {
 	_pressedEnforced = force;
-	if (force && !getPressed()) // TODO : handle color change ?
+	if (force && !getPressed())
+	{
 		setPressed(true);
+		setColor(grey);
+	}
 }
 
 } //namespace OpenXcom
