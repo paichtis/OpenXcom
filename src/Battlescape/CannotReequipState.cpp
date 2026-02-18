@@ -188,22 +188,20 @@ void CannotReequipState::init()
 	State::init();
 
 	// first create a map with all missing items already in transit 
-	std::map<const RuleItem*, int> transfers;
+	std::map<const RuleItem*, int> inTransit;
 	auto baseTransfers = *_base->getTransfers();
 	if ( !_missingItemsMap.empty())
 	{
 		for (auto transfer : baseTransfers)
 		{
+			if (transfer->getType() != TRANSFER_ITEM)
+				continue;
 			auto rule = transfer->getItems();
 			auto it = _missingItemsMap.find(rule);
+			if (it == _missingItemsMap.end())
+				continue;
 
-			auto itt = transfers.find(rule);
-			if (itt == transfers.end())
-			{
-				transfers[rule] = it->second;
-			}
-			else
-				transfers[rule] += it->second;
+			inTransit[rule] += transfer->getQuantity(); // work for int type
 		}
 	}
 
@@ -216,8 +214,8 @@ void CannotReequipState::init()
 			ss << pair.second; // missing quantity
 
 			std::ostringstream ssTransferts;
-			auto it = transfers.find(pair.first);
-			if (it != transfers.end())
+			auto it = inTransit.find(pair.first);
+			if (it != inTransit.end())
 				ssTransferts << it->second;  // in transit
 			else
 				ssTransferts << 0;
