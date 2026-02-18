@@ -79,12 +79,18 @@ public:
 	Cursor *getCursor() const { return _cursor; }
 	/// Gets the FpsCounter.
 	FpsCounter *getFpsCounter() const { return _fpsCounter; }
+
+	/// is a campaign mode ? (vs battle)
+	bool isCampaignMode();
+
 	/// Resets the state stack to a new state.
 	void setState(State *state);
 	/// Pushes a new state into the state stack.
 	void pushState(State *state);
 	/// Pops the last state from the state stack.
 	void popState();
+	/// Pops the last state from the state stack then pushes a new State
+	void replaceState(State* state);
 	/// gets the current state (last in the stack)
 	State* getCurrentState() const;
 	/// Returns the state before the current one if any 

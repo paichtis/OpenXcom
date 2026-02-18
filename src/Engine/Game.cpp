@@ -51,13 +51,19 @@ namespace OpenXcom
 
 const double Game::VOLUME_GRADIENT = 10.0;
 
+
+bool Game::isCampaignMode()
+{
+	return _save->getMonthsPassed() != -1;
+}
+
 /**
  * Starts up all the SDL subsystems,
  * creates the display screen and sets up the cursor.
  * @param title Title of the game window.
  */
 Game::Game(const std::string &title) : _screen(0), _cursor(0), _lang(0), _save(0), _mod(0), _quit(false), _init(false), _update(false),  _mouseActive(true), _timeUntilNextFrame(0),
-	_ctrl(false), _alt(false), _shift(false), _rmb(false), _mmb(false), _scrollStep(1)
+									   _ctrl(false), _alt(false), _shift(false), _rmb(false), _mmb(false), _scrollStep(1)
 {
 	Options::reload = false;
 	Options::mute = false;
@@ -484,6 +490,16 @@ void Game::popState()
 	_deleted.push_back(_states.back());
 	_states.pop_back();
 	_init = false;
+}
+
+/**
+*	pops the last state then pushes the new one, effectivly moving states
+*/
+
+void Game::replaceState(State* state)
+{
+	popState();
+	pushState(state);
 }
 
 
