@@ -644,7 +644,7 @@ bool SellState::isHidden(int sel) const
 
 void SellState::setAutoSellColor(int line)
 {
-	_lstItems->setCellColor(line, 0, 18);
+	_lstItems->setCellColor(line, 0, 8);
 }
 
 /**
