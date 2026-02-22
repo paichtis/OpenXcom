@@ -41,9 +41,15 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
+#include "../Basescape/FilterToggleButton.h"
 
 namespace OpenXcom
 {
+
+bool CraftArmorState::notInCraftFilter(const Soldier* soldier) const
+{
+	return soldier->getCraft() != _craft;
+}
 
 /**
  * Initializes all the elements in the Craft Armor screen.
@@ -51,7 +57,8 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param craft ID of the selected craft.
  */
-CraftArmorState::CraftArmorState(Base *base, size_t craft) : _base(base), _craft(craft), _savedScrollPosition(0), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL)
+CraftArmorState::CraftArmorState(Base* base, Craft* craft, MissionPlanning* planning) :
+	_base(base), _craft(craft), _savedScrollPosition(0), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL), _planning(planning)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -62,6 +69,7 @@ CraftArmorState::CraftArmorState(Base *base, size_t craft) : _base(base), _craft
 	_txtArmor = new Text(100, 9, 192, 32);
 	_lstSoldiers = new TextList(288, 128, 8, 40);
 	_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
+	_btnMinus = new FilterToggleButton(18, 16, 294, 8);
 
 	touchComponentsCreate(_txtTitle, true);
 
@@ -76,6 +84,7 @@ CraftArmorState::CraftArmorState(Base *base, size_t craft) : _base(base), _craft
 	add(_txtArmor, "text", "craftArmor");
 	add(_lstSoldiers, "list", "craftArmor");
 	add(_cbxSortBy, "button", "craftArmor");
+	add(_btnMinus, "button", "craftArmor");
 
 	touchComponentsAdd("button2", "craftArmor", _window);
 
@@ -92,6 +101,11 @@ CraftArmorState::CraftArmorState(Base *base, size_t craft) : _base(base), _craft
 	_btnOk->onKeyboardPress((ActionHandler)&CraftArmorState::btnDeequipAllArmorClick, Options::keyRemoveArmorFromAllCrafts);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftArmorState::btnDeequipCraftArmorClick, Options::keyRemoveArmorFromCraft);
 
+	_btnMinus->setListAndBase(_lstSoldiers, _base);
+	_btnMinus->setFilter([this](auto s)	 { return notInCraftFilter(s); });
+	_btnMinus->onMouseClick((ActionHandler)&CraftArmorState::btnMinusClick);
+	_btnMinus->setPressed(_planning != nullptr);
+	
 	_txtTitle->setBig();
 	_txtTitle->setText(tr("STR_SELECT_ARMOR"));
 
@@ -272,6 +286,8 @@ void CraftArmorState::init()
 	int row = 0;
 	for (const auto* soldier : *_base->getSoldiers())
 	{
+		if (_btnMinus->ignore(soldier))
+			continue;
 		_lstSoldiers->setCellText(row, 2, tr(soldier->getArmor()->getType()));
 		row++;
 	}
@@ -299,10 +315,11 @@ void CraftArmorState::initList(size_t scrl)
 		_lstSoldiers->setColumns(3, 106, 70, 104);
 	}
 
-	Craft *c = _base->getCrafts()->at(_craft);
 	BaseSumDailyRecovery recovery = _base->getSumRecoveryPerDay();
 	for (const auto* soldier : *_base->getSoldiers())
 	{
+		if (_btnMinus->ignore(soldier))
+			continue;
 		if (_dynGetter != NULL)
 		{
 			// call corresponding getter
@@ -317,7 +334,7 @@ void CraftArmorState::initList(size_t scrl)
 		}
 
 		Uint8 color;
-		if (soldier->getCraft() == c)
+		if (soldier->getCraft() == _craft)
 		{
 			color = _lstSoldiers->getSecondaryColor();
 		}
@@ -452,6 +469,16 @@ void CraftArmorState::btnOkClick(Action *)
 }
 
 /**
+ * @brief  refreshes the list
+ * @param  action Pointer to an action.
+ */
+void CraftArmorState::btnMinusClick(Action *)
+{
+	initList(0);
+}
+
+
+/**
  * Shows the Select Armor window.
  * @param action Pointer to an action.
  */
@@ -463,15 +490,14 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 		return;
 	}
 
-	Soldier *s = _base->getSoldiers()->at(_lstSoldiers->getSelectedRow());
+	Soldier* s = _btnMinus->getSelectedSoldier();
 	if (!(s->getCraft() && s->getCraft()->getStatus() == "STR_OUT"))
 	{
 		if (_game->isLeftClick(action, true))
 		{
 			if (_game->isCtrlPressed(true))
 			{
-				Craft* c = _base->getCrafts()->at(_craft);
-				if (s->getCraft() == c)
+				if (s->getCraft() == _craft)
 				{
 					s->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
 					_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, tr("STR_NONE_UC"));
@@ -479,36 +505,45 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 				}
 				else if (s->hasFullHealth())
 				{
-					int space = c->getSpaceAvailable();
-					CraftPlacementErrors err = c->validateAddingSoldier(space, s);
+					int space = _craft->getSpaceAvailable();
+					CraftPlacementErrors err = _craft->validateAddingSoldier(space, s);
 					if (err == CPE_None)
 					{
-						s->setCraftAndMoveEquipment(c, _base, _game->getSavedGame()->getMonthsPassed() == -1, true);
-						_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, c->getName(_game->getLanguage()));
+						s->setCraftAndMoveEquipment(_craft, _base, _game->getSavedGame()->getMonthsPassed() == -1, true);
+						_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, _craft->getName(_game->getLanguage()));
 						_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getSecondaryColor());
 					}
-					else if (err == CPE_SoldierGroupNotAllowed)
+					else
 					{
-						_game->pushState(new ErrorMessageState(tr("STR_SOLDIER_GROUP_NOT_ALLOWED"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
-					}
-					else if (err == CPE_SoldierGroupNotSame)
-					{
-						_game->pushState(new ErrorMessageState(tr("STR_SOLDIER_GROUP_NOT_SAME"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
-					}
-					else if (err == CPE_ArmorGroupNotAllowed)
-					{
-						_game->pushState(new ErrorMessageState(tr("STR_ARMOR_GROUP_NOT_ALLOWED"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
-					}
-					else if (space > 0)
-					{
-						_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+						std::string errMsg = "";
+						if (err == CPE_SoldierGroupNotAllowed)
+						{
+							errMsg = tr("STR_SOLDIER_GROUP_NOT_ALLOWED");
+						}
+						else if (err == CPE_SoldierGroupNotSame)
+						{
+							errMsg = tr("STR_SOLDIER_GROUP_NOT_SAME");
+						}
+						else if (err == CPE_ArmorGroupNotAllowed)
+						{
+							errMsg = tr("STR_ARMOR_GROUP_NOT_ALLOWED");
+						}
+						else if (space > 0)
+						{
+							errMsg = tr("STR_NOT_ENOUGH_CRAFT_SPACE");
+						}
+						else
+						{
+							errMsg = "NOTFOUND - REPORT";
+						}
+						_game->pushState(new ErrorMessageState(errMsg, _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
 					}
 				}
 			}
 			else
 			{
 				_savedScrollPosition = _lstSoldiers->getScroll();
-				_game->pushState(new SoldierArmorState(_base, _lstSoldiers->getSelectedRow(), SA_GEOSCAPE));
+				_game->pushState(new SoldierArmorState(_base, _lstSoldiers->getSelectedRow() + _btnMinus->calculateOffset(), SA_GEOSCAPE));
 			}
 		}
 		else if (_game->isRightClick(action, true))
@@ -537,7 +572,7 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 			}
 			if (armorUnlocked && a && a->getCanBeUsedBy(s))
 			{
-				if (save->getMonthsPassed() != -1)
+				if(_game->isCampaignMode())
 				{
 					if (a->getStoreItem() == nullptr ||
 						a->getStoreItem() == s->getArmor()->getStoreItem() ||
@@ -579,7 +614,7 @@ void CraftArmorState::lstSoldiersClick(Action *action)
  */
 void CraftArmorState::lstSoldiersMousePress(Action *action)
 {
-	if (Options::changeValueByMouseWheel == 0)
+	if (Options::changeValueByMouseWheel == 0 || _btnMinus->getPressed())
 		return;
 	unsigned int row = _lstSoldiers->getSelectedRow();
 	size_t numSoldiers = _base->getSoldiers()->size();
@@ -609,10 +644,12 @@ void CraftArmorState::lstSoldiersMousePress(Action *action)
  */
 void CraftArmorState::btnDeequipAllArmorClick(Action *action)
 {
+	if (_btnMinus->getPressed())  // not available when filtering soldiers. TODO : implement cleanly this
+		return;
 	int row = 0;
 	for (auto* soldier : *_base->getSoldiers())
 	{
-		if (!(soldier->getCraft() && soldier->getCraft()->getStatus() == "STR_OUT"))
+		if (!soldier->isOutOfBase())
 		{
 			Armor *a = soldier->getRules()->getDefaultArmor();
 
@@ -648,11 +685,13 @@ void CraftArmorState::btnDeequipAllArmorClick(Action *action)
  */
 void CraftArmorState::btnDeequipCraftArmorClick(Action *action)
 {
-	Craft *c = _base->getCrafts()->at(_craft);
+	if (_btnMinus->getPressed()) // not available when filtering soldiers. TODO : implement cleanly this
+		return;
+
 	int row = 0;
 	for (auto* s : *_base->getSoldiers())
 	{
-		if (s->getCraft() == c || s->getCraft() == 0)
+		if (s->getCraft() == _craft || s->getCraft() == 0)
 		{
 			Armor *a = s->getRules()->getDefaultArmor();
 

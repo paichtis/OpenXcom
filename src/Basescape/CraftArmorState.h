@@ -32,6 +32,8 @@ class ComboBox;
 class Base;
 class Soldier;
 struct SortFunctor;
+class FilterToggleButton;
+class MissionPlanning;
 
 /**
  * Select Armor screen that lets the player
@@ -45,17 +47,23 @@ private:
 	Text *_txtTitle, *_txtName, *_txtCraft, *_txtArmor;
 	ComboBox *_cbxSortBy;
 	TextList *_lstSoldiers;
+	FilterToggleButton* _btnMinus;
+	MissionPlanning* _planning;
+
 
 	Base *_base;
-	size_t _craft, _savedScrollPosition;
+	Craft* _craft;
+	size_t _savedScrollPosition;
 	std::vector<Soldier *> _origSoldierOrder;
 	std::vector<SortFunctor *> _sortFunctors;
 	getStatFn_t _dynGetter;
+
+	bool notInCraftFilter(const Soldier* soldier) const;
 	///initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
 public:
 	/// Creates the Craft Armor state.
-	CraftArmorState(Base *base, size_t craft);
+  CraftArmorState(Base* base, Craft* craft, MissionPlanning *planning = nullptr);
 	/// Cleans up the Craft Armor state.
 	~CraftArmorState();
 	/// Handler for changing the sort by combobox.
@@ -72,6 +80,8 @@ public:
 	void moveSoldierDown(Action *action, unsigned int row, bool max = false);
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
+	/// Handler for clicking the filter button.
+	void btnMinusClick(Action* action);
 	/// Handler for clicking the Soldiers list.
 	void lstSoldiersClick(Action *action);
 	/// Handler for pressing-down a mouse-button in the list.
