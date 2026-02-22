@@ -33,7 +33,6 @@
 #include "../Interface/Text.h"
 #include "../Interface/TextList.h"
 #include "../Savegame/Base.h"
-#include "../Savegame/BattleUnit.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SavedGame.h"
 #include "SoldierInfoState.h"
@@ -41,8 +40,6 @@
 #include "SoldierTransformationState.h"
 #include "SoldierTransformationListState.h"
 #include "../Battlescape/InventoryState.h"
-#include "../Battlescape/BattlescapeGenerator.h"
-#include "../Savegame/SavedBattleGame.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
 #include "CategoryComboBox.h"
@@ -54,7 +51,6 @@ namespace OpenXcom
 {	// at least one soldier needed 
 	return base->getSoldiers()->size() <= 0;
 }
-
 
  void SoldiersState::doBeforeBaseChange()
  {
@@ -420,7 +416,6 @@ void SoldiersState::init()
 	{
 		_inited = true;
 		addNavigationButtons(this, _lstSoldiers);
-//		doAfterBaseChange(); already done in addNavigationButtons
 	}
 	else
 		initList(_lstSoldiers->getScroll());
@@ -725,6 +720,13 @@ void SoldiersState::cbxScreenActionsChange(Action *action)
 	}
 }
 
+int SoldiersState::getSelectedSoldierId() const
+{
+	size_t idx = _lstSoldiers->getSelectedRow();
+	return _base->getSoldierId(idx);
+}
+
+
 /**
 * Displays the inventory screen for the soldiers inside the base.
 * @param action Pointer to an action.
@@ -733,38 +735,13 @@ void SoldiersState::btnInventoryClick(Action *)
 {
 	if (_base->getAvailableSoldiers(true, true) > 0)
 	{
-		SavedBattleGame *bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
-		_game->getSavedGame()->setBattleGame(bgame);
-		bgame->setMissionType("STR_BASE_DEFENSE");
-
-		if (_game->isCtrlPressed() && _game->isAltPressed())
-		{
-			_game->getSavedGame()->setDisableSoldierEquipment(true);
-		}
-		BattlescapeGenerator bgen = BattlescapeGenerator(_game);
-		bgen.setBase(_base);
-		bgen.runInventory(0);
-
-		// pre-select the soldier under the mouse cursor (if possible)
+		int soldierId = -1;
 		if (!_cbxScreenActions || _cbxScreenActions->getSelected() == 0)
 		{
-			size_t idx = _lstSoldiers->getSelectedRow();
-			if (idx < _base->getSoldiers()->size())
-			{
-				int soldierId = _base->getSoldiers()->at(idx)->getId();
-				for (auto* unit : *bgame->getUnits())
-				{
-					if (unit->getId() == soldierId)
-					{
-						bgame->setSelectedUnit(unit);
-						break;
-					}
-				}
-			}
+			soldierId = getSelectedSoldierId();
 		}
-
-		_game->getScreen()->clear();
-		_game->pushState(new InventoryState(false, 0, _base, true));
+		bool clearEquipement = _game->isCtrlPressed() && _game->isAltPressed();
+		InventoryState::pushFromBaseScape(_base, soldierId, clearEquipement);
 	}
 }
 

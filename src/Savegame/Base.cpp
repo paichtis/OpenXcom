@@ -439,6 +439,17 @@ std::vector<Soldier*> *Base::getSoldiers()
 	return &_soldiers;
 }
 
+
+
+int Base::getSoldierId(size_t index) const
+{
+	if (index < _soldiers.size())
+	{
+		return _soldiers[index]->getId();
+	}
+	return -1;
+}
+
 /**
  * Pre-calculates soldier stats with various bonuses.
  */

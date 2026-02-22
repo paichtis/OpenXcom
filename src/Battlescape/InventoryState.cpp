@@ -69,6 +69,44 @@ static const int _createTemplateBtnY = 90;
 static const int _applyTemplateBtnY  = 113;
 
 /**
+* Creates a dummy battle to push the inventory screen from BaseScape
+*/
+
+
+bool InventoryState::pushFromBaseScape(Base* base, int soldierId, bool clearEquipement)
+{
+	if (base->getAvailableSoldiers(true, true) <= 0)
+		return false; // failure
+
+	SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
+	_game->getSavedGame()->setBattleGame(bgame);
+	bgame->setMissionType("STR_BASE_DEFENSE");
+	_game->getSavedGame()->setDisableSoldierEquipment(clearEquipement);
+
+	BattlescapeGenerator bgen = BattlescapeGenerator(_game);
+	bgen.setBase(base);
+	bgen.runInventory(0);
+
+	if (soldierId >= 0)
+	{
+		for (auto* unit : *bgame->getUnits())
+		{
+			if (unit->getId() == soldierId)
+			{
+				bgame->setSelectedUnit(unit);
+				break;
+			}
+		}
+	}
+	
+	_game->getScreen()->clear();
+	_game->pushState(new InventoryState(false, 0, base, true));
+	return true;
+}
+
+
+
+/**
  * Initializes all the elements in the Inventory screen.
  * @param game Pointer to the core game.
  * @param tu Does Inventory use up Time Units?

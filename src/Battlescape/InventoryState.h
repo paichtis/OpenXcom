@@ -74,6 +74,8 @@ private:
 	/// Helper method for Apply Template button
 	void _applyInventoryTemplate(std::vector<EquipmentLayoutItem*> &inventoryTemplate);
 public:
+	/// creates and pushes the inventory State from BaseScape
+	static bool pushFromBaseScape(Base* base, int soldierId, bool clearEquipement);
 	/// Creates the Inventory state.
 	InventoryState(bool tu, BattlescapeState *parent, Base *base, bool noCraft = false);
 	/// Cleans up the Inventory state.

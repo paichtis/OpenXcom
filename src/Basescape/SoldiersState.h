@@ -77,6 +77,8 @@ private:
 
 	/// -- end of base switching related members and methods --
 
+	int getSelectedSoldierId() const;
+
 public:
 	/// Creates the Soldiers state.
 	SoldiersState(Base *base);

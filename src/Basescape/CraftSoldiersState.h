@@ -100,6 +100,9 @@ private:
 	/// Handler for clicking the De-assign All Soldiers button.
 	void btnDeassignAllSoldiersClick(Action *action);
 	void btnDeassignCraftSoldiersClick(Action *action);
+
+	/// Handler for getting the inventory of a soldier.
+	void btnInventoryClick(Action *action);
 };
 
 }
