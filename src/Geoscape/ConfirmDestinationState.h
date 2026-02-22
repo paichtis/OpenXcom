@@ -28,6 +28,7 @@ class TextButton;
 class ToggleTextButton;
 class Craft;
 class Target;
+class MissionPlanning;
 
 /**
  * Window that allows the player
@@ -43,11 +44,12 @@ private:
 	Text *_txtETA;
 	TextButton *_btnOk, *_btnTransfer, *_btnCancel;
 	ToggleTextButton *_btnFollowWingLeader;
+	MissionPlanning* _planning;
 	// Checks the starting condition
 	std::string checkStartingCondition();
 public:
 	/// Creates the Confirm Destination state.
-	ConfirmDestinationState(std::vector<Craft*> crafts, Target *target);
+	 ConfirmDestinationState(std::vector<Craft*> crafts, Target* target, MissionPlanning* planning = nullptr);
 	/// Cleans up the Confirm Destination state.
 	~ConfirmDestinationState();
 	/// Handler for clicking the OK button.

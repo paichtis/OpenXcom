@@ -38,8 +38,14 @@
 #include "ConfirmDestinationState.h"
 #include "../Basescape/BasescapeState.h"
 #include "../Basescape/CraftInfoState.h"
+#include "../Basescape/CraftSoldiersState.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Mod/RuleInterface.h"
+#include "../Savegame/ItemContainer.h"
+#include "../Basescape/FilterToggleButton.h"
+#include "../Engine/Logger.h"
+#include "../Interface/ConfirmationDialogState.h"
+#include "MissionPlanning.h"
 
 namespace OpenXcom
 {
@@ -50,8 +56,10 @@ namespace OpenXcom
  * @param globe Pointer to the Geoscape globe.
  * @param base Pointer to base to show contained crafts (NULL to show all crafts).
  * @param target Pointer to target to intercept (NULL to ask user for target).
+ * @param deploymentRule Pointer to AlienDeployment ruleset for the mission (nullptr to ignore).
  */
-InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Target *target) : _globe(globe), _base(base), _target(target)
+InterceptState::InterceptState(Globe* globe, bool useCustomSound, Base* base, Target* target, MissionPlanning* mission)
+	: _globe(globe), _base(base), _target(target)
 {
 	const int WIDTH_CRAFT = 72;
 	const int WIDTH_STATUS = 94;
@@ -103,6 +111,22 @@ InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Ta
 		_lstCrafts = new TextList(288, 64 + extraHeight, 8, 78 - offset);
 	}
 
+	_prepareMission = (mission != nullptr);
+	_planning = mission;
+	if (_prepareMission)
+	{
+		_btnFilterBtn = new FilterToggleButton(16, 16, 300, 30 + 4 - offset);
+		_txtFilterTooltip = new Text(120, 16, 0, 0);
+		// TODO : temp fixes - unImplemented buttons
+		_btnFilterBtn->setVisible(false);
+		_txtFilterTooltip->setVisible(false); 
+	}
+	else
+	{
+		_btnFilterBtn = nullptr;
+		_txtFilterTooltip = nullptr;
+	}
+
 	// Set palette
 	setInterface("intercept");
 
@@ -115,6 +139,12 @@ InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Ta
 	add(_txtBase, "text2", "intercept");
 	add(_txtWeapons, "text2", "intercept");
 	add(_lstCrafts, "list", "intercept");
+
+	if (_prepareMission)
+	{
+		add(_btnFilterBtn, "button", "intercept");
+		add(_txtFilterTooltip, "text2", "intercept");
+	}
 
 	centerAllSurfaces();
 
@@ -132,8 +162,15 @@ InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Ta
 
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
-	_txtTitle->setText(tr("STR_LAUNCH_INTERCEPTION"));
-
+	if (_prepareMission)
+	{
+		std::string title = tr("STR_PREPARE_MISSION");
+		title += tr("STR_STEP").arg(1);
+		_txtTitle->setText(title);
+	}
+	else
+		_txtTitle->setText(tr("STR_LAUNCH_INTERCEPTION"));
+	
 	_txtCraft->setText(tr("STR_CRAFT"));
 
 	_txtStatus->setText(tr("STR_STATUS"));
@@ -181,6 +218,8 @@ InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Ta
 		{
 			double xdistance = 0.0;
 			if (_target) xdistance = xcraft->getDistance(_target);
+			if (_planning && !_planning->isCraftEligible(xcraft))
+				continue;
 			craftList.push_back(std::make_tuple(xcraft, xdistance, xbase));
 		}
 	}
@@ -408,7 +447,12 @@ InterceptState::~InterceptState()
  */
 void InterceptState::btnCancelClick(Action *)
 {
-	_game->popState();
+	if (_prepareMission && _planning->isCraftSelected())
+	{
+		_planning->confirmAbort("intercept"); // abort mission planning ? handles the poping if necessary
+	}
+	else
+		_game->popState();
 }
 
 /**
@@ -422,11 +466,26 @@ void InterceptState::btnGotoBaseClick(Action *)
 }
 
 /**
+ * Proceeds to the next step in the 'prepare mission' flow.
+ * @param rClic whether this was triggered by a right-click.
+ */
+void InterceptState::nextStep(bool rClic)
+{
+	Craft* craft = _crafts[_lstCrafts->getSelectedRow()];
+	_planning->selectCraft(craft, rClic);
+	_planning->goToCraft(rClic);
+}
+
+/**
  * Pick a target for the selected craft.
  * @param action Pointer to an action.
  */
 void InterceptState::lstCraftsLeftClick(Action *)
 {
+	if (_prepareMission)
+	{
+		return nextStep(false);
+	}
 	// condition used in shift and non-shift paths
 	auto allowStart = [&](Craft* c)
 	{
@@ -485,12 +544,38 @@ void InterceptState::lstCraftsLeftClick(Action *)
 	}
 }
 
+bool InterceptState::goNextState(Craft* craft, bool rClic)
+{
+	_game->popState();
+
+	for (auto* xbase : *_game->getSavedGame()->getBases())
+	{
+		if (_base != 0 && xbase != _base)
+			continue;
+		for (size_t ci = 0; ci < xbase->getCrafts()->size(); ++ci)
+		{
+			if (craft == xbase->getCrafts()->at(ci))
+			{
+				if (rClic)
+					_game->pushState(new CraftInfoState(xbase, ci));
+				else
+					_game->pushState(new CraftSoldiersState(xbase, ci, _planning));
+				return false;
+			}
+		}
+	}
+	return false;
+}
+
+
 /**
  * Centers on the selected craft.
  * @param action Pointer to an action.
  */
 void InterceptState::lstCraftsRightClick(Action *)
 {
+	if (_prepareMission)
+		return nextStep(true);
 	Craft* c = _crafts[_lstCrafts->getSelectedRow()];
 	if (c->getStatus() == "STR_OUT")
 	{
@@ -499,26 +584,10 @@ void InterceptState::lstCraftsRightClick(Action *)
 	}
 	else
 	{
-		_game->popState();
-
-		bool found = false;
-		for (auto* xbase : *_game->getSavedGame()->getBases())
-		{
-			if (_base != 0 && xbase != _base)
-				continue;
-			for (size_t ci = 0; ci < xbase->getCrafts()->size(); ++ci)
-			{
-				if (c == xbase->getCrafts()->at(ci))
-				{
-					_game->pushState(new CraftInfoState(xbase, ci));
-					found = true;
-					break;
-				}
-			}
-			if (found) break;
-		}
+		goNextState(c, true);
 	}
 }
+
 
 /**
 * Opens the corresponding Ufopaedia article.

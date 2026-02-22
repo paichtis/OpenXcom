@@ -31,6 +31,7 @@ class Text;
 class TextEdit;
 class Surface;
 class Craft;
+class MissionPlanning;
 
 /**
  * Craft Info screen that shows all the
@@ -51,11 +52,12 @@ private:
 	Text *_txtWName[RuleCraft::WeaponMax], *_txtWAmmo[RuleCraft::WeaponMax];
 	InteractiveSurface *_sprite, *_weapon[RuleCraft::WeaponMax];
 	Surface *_crew, *_equip;
+	MissionPlanning* _planning;
 	/// Formats an amount of time.
 	std::string formatTime(int time);
 public:
 	/// Creates the Craft Info state.
-	CraftInfoState(Base *base, size_t craftId);
+  CraftInfoState(Base* base, size_t craftId, MissionPlanning* planning = nullptr);
 	/// Cleans up the Craft Info state.
 	~CraftInfoState();
 	/// Updates the craft info.

@@ -17,24 +17,46 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "TargetInfoState.h"
+#include "../Battlescape/BriefingLightState.h"
+#include "../Engine/Action.h"
 #include "../Engine/Game.h"
-#include "../Mod/Mod.h"
-#include "../Mod/AlienRace.h"
 #include "../Engine/LocalizedText.h"
-#include "../Interface/TextButton.h"
-#include "../Interface/Window.h"
+#include "../Engine/Options.h"
 #include "../Interface/Text.h"
+#include "../Interface/TextButton.h"
 #include "../Interface/TextEdit.h"
-#include "../Savegame/MovingTarget.h"
+#include "../Interface/Window.h"
+#include "../Mod/AlienRace.h"
+#include "../Mod/Mod.h"
 #include "../Savegame/AlienBase.h"
 #include "../Savegame/MissionSite.h"
-#include "../Engine/Options.h"
+#include "../Savegame/MovingTarget.h"
 #include "InterceptState.h"
-#include "../Engine/Action.h"
-#include "../Battlescape/BriefingLightState.h"
+#include "MissionPlanning.h"
 
 namespace OpenXcom
 {
+
+bool TargetInfoState::fillDeploymentInfo()
+{
+	// info
+	MissionSite* m = dynamic_cast<MissionSite*>(_target);
+	AlienBase* b = dynamic_cast<AlienBase*>(_target);
+
+	if (m != 0)
+	{
+		_deploymentRule = _game->getMod()->getDeployment(m->getDeployment()->getType());
+	}
+	else if (b != 0)
+	{
+		AlienRace* race = _game->getMod()->getAlienRace(b->getAlienRace());
+		_deploymentRule = _game->getMod()->getDeployment(race->getBaseCustomMission());
+		if (!_deploymentRule)
+			_deploymentRule = _game->getMod()->getDeployment(b->getDeployment()->getType());
+	}
+
+	return _deploymentRule && !_deploymentRule->getAlertDescription().empty();
+}
 
 /**
  * Initializes all the elements in the Target Info window.
@@ -42,15 +64,17 @@ namespace OpenXcom
  * @param target Pointer to the target to show info from.
  * @param globe Pointer to the Geoscape globe.
  */
-TargetInfoState::TargetInfoState(Target *target, Globe *globe) : _target(target), _globe(globe), _deploymentRule(0)
+TargetInfoState::TargetInfoState(Target* target, Globe* globe) : _target(target), _globe(globe), _deploymentRule(0)
 {
 	_screen = false;
+	bool hasInfo = fillDeploymentInfo();
 
 	// Create objects
-	_window = new Window(this, 192, 120, 32, 40, POPUP_BOTH);
+	_window = new Window(this, 192, 120 + (hasInfo ? 20 : 0), 32, 40, POPUP_BOTH); // 20 = 12 + 4 + 4 (extra button)
 	_btnIntercept = new TextButton(160, 12, 48, 124);
 	_btnInfo = new TextButton(77, 12, 48, 140);
 	_btnOk = new TextButton(77, 12, 131, 140);
+	_btnPrepareMission = new TextButton(160, 12, 48, 156);
 	_edtTitle = new TextEdit(this, 182, 32, 37, 46);
 	_txtTargetted = new Text(182, 9, 37, 78);
 	_txtFollowers = new Text(182, 40, 37, 88);
@@ -61,6 +85,7 @@ TargetInfoState::TargetInfoState(Target *target, Globe *globe) : _target(target)
 
 	add(_window, "window", "targetInfo");
 	add(_btnIntercept, "button", "targetInfo");
+	add(_btnPrepareMission, "button", "targetInfo");
 	add(_btnInfo, "button", "targetInfo");
 	add(_btnOk, "button", "targetInfo");
 	add(_edtTitle, "text2", "targetInfo");
@@ -75,6 +100,9 @@ TargetInfoState::TargetInfoState(Target *target, Globe *globe) : _target(target)
 
 	_btnIntercept->setText(tr("STR_INTERCEPT"));
 	_btnIntercept->onMouseClick((ActionHandler)&TargetInfoState::btnInterceptClick);
+
+	_btnPrepareMission->setText(tr("STR_PREPARE_MISSION"));
+	_btnPrepareMission->onMouseClick((ActionHandler)&TargetInfoState::btnPrepareMissionClick);
 
 	_btnInfo->setText(tr("STR_INFO"));
 	_btnInfo->onMouseClick((ActionHandler)&TargetInfoState::btnInfoClick);
@@ -100,30 +128,17 @@ TargetInfoState::TargetInfoState(Target *target, Globe *globe) : _target(target)
 	}
 	_txtFollowers->setText(ss.str());
 
-	// info
-	MissionSite* m = dynamic_cast<MissionSite*>(_target);
-	AlienBase* b = dynamic_cast<AlienBase*>(_target);
-
-	if (m != 0)
+	if (!hasInfo)
 	{
-		_deploymentRule = _game->getMod()->getDeployment(m->getDeployment()->getType());
-	}
-	else if (b != 0)
-	{
-		AlienRace *race = _game->getMod()->getAlienRace(b->getAlienRace());
-		_deploymentRule = _game->getMod()->getDeployment(race->getBaseCustomMission());
-		if (!_deploymentRule) _deploymentRule = _game->getMod()->getDeployment(b->getDeployment()->getType());
-	}
-
-	if (_deploymentRule && !_deploymentRule->getAlertDescription().empty())
-	{
-		// all OK
-	}
-	else
-	{
+		_btnPrepareMission->setVisible(false);
 		_btnInfo->setVisible(false);
 		_btnOk->setWidth(_btnOk->getX() + _btnOk->getWidth() - _btnInfo->getX());
 		_btnOk->setX(_btnInfo->getX());
+	}
+
+	if (!Options::oxcngShowBetaFeatures)
+	{	// only show the prepareMission button if beta features are activated
+		_btnPrepareMission->setVisible(false);
 	}
 
 	if (_deploymentRule && _deploymentRule->getDespawnPenalty() != 0)
@@ -138,23 +153,33 @@ TargetInfoState::TargetInfoState(Target *target, Globe *globe) : _target(target)
  */
 TargetInfoState::~TargetInfoState()
 {
-
 }
 
 /**
  * Picks a craft to intercept the UFO.
  * @param action Pointer to an action.
  */
-void TargetInfoState::btnInterceptClick(Action *)
+void TargetInfoState::btnInterceptClick(Action*)
 {
 	_game->pushState(new InterceptState(_globe, false, 0, _target));
+}
+
+/**
+ * Starts preparing a mission against the target.
+ * @param action Pointer to an action.
+ */
+void TargetInfoState::btnPrepareMissionClick(Action* action)
+{
+	_game->popState();
+	MissionPlanning* planning = MissionPlanning::create(_deploymentRule, _target); // register the mission planner and thus start the planing flow
+	_game->pushState(new InterceptState(_globe, false, 0, _target, planning));
 }
 
 /**
  * Closes the window.
  * @param action Pointer to an action.
  */
-void TargetInfoState::btnOkClick(Action *)
+void TargetInfoState::btnOkClick(Action*)
 {
 	_game->popState();
 }
@@ -163,7 +188,7 @@ void TargetInfoState::btnOkClick(Action *)
  * Shows the BriefingLight screen.
  * @param action Pointer to an action.
  */
-void TargetInfoState::btnInfoClick(Action *)
+void TargetInfoState::btnInfoClick(Action*)
 {
 	_game->pushState(new BriefingLightState(_deploymentRule));
 }
@@ -172,7 +197,7 @@ void TargetInfoState::btnInfoClick(Action *)
  * Changes the target name.
  * @param action Pointer to an action.
  */
-void TargetInfoState::edtTitleChange(Action *action)
+void TargetInfoState::edtTitleChange(Action* action)
 {
 	if (_edtTitle->getText() == _target->getDefaultName(_game->getLanguage()))
 	{

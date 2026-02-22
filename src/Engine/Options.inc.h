@@ -148,6 +148,7 @@ OPT bool oxceBaseManufactureFallbackButton;
 OPT bool oxceBaseManufactureInfinityButton;
 OPT bool oxceBaseTouchButtons;
 OPT bool oxceBaseManufactureAlwaysFullProductionDetails;
+OPT bool oxcngShowBetaFeatures;
 
 OPT bool oxceDisableAlienInventory;
 OPT bool oxceDisableHitLog;

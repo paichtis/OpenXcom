@@ -106,6 +106,7 @@ private:
 	std::vector<VehicleDeploymentData> _customVehicleDeployment;
 	int _skinIndex;
 	ScriptValues<Craft> _scriptValues;
+	std::vector<int> _backupAssignedSoldierIds;
 
 	void recalcSpeedMaxRadian();
 
@@ -177,6 +178,11 @@ public:
 	std::vector<Vehicle*> *getVehicles();
 	/// Calculates (and stores) the sum of all equipment of all soldiers on the craft.
 	void calculateTotalSoldierEquipment();
+
+	/// backup and restore assigned soldiers
+	void backupAssignedSoldiers();
+	void restoreAssignedSoldiersFromBackup();
+	bool hasAssignedSoldiersBackup() const;
 
 	/// Gets the total storage size of all items in the craft. Including vehicles+ammo and craft weapons+ammo.
 	double getTotalItemStorageSize() const;

@@ -46,6 +46,7 @@
 #include "CraftArmorState.h"
 #include "CraftPilotsState.h"
 #include "../Ufopaedia/Ufopaedia.h"
+#include "../Geoscape/MissionPlanning.h"
 
 namespace OpenXcom
 {
@@ -56,10 +57,10 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param craftId ID of the selected craft.
  */
-CraftInfoState::CraftInfoState(Base *base, size_t craftId) : _base(base), _craftId(craftId), _craft(0)
+CraftInfoState::CraftInfoState(Base* base, size_t craftId, MissionPlanning* planning) : _base(base), _craftId(craftId), _craft(0), _planning(planning)
 {
 	// Create objects
-	if (_game->getSavedGame()->getMonthsPassed() != -1)
+	if (_game->isCampaignMode())
 	{
 		_window = new Window(this, 320, 200, 0, 0, POPUP_BOTH);
 	}
@@ -74,7 +75,7 @@ CraftInfoState::CraftInfoState(Base *base, size_t craftId) : _base(base), _craft
 		_weaponNum = RuleCraft::WeaponMax;
 
 	int showNewBattle = 0;
-	if (_game->getSavedGame()->getDebugMode() && _game->getSavedGame()->getMonthsPassed() != -1)
+	if (_game->getSavedGame()->getDebugMode() && _game->isCampaignMode())
 	{
 		// only the first craft can be used
 		if (_craftId == 0 && _craft->getRules()->isForNewBattle())
@@ -485,7 +486,10 @@ std::string CraftInfoState::formatTime(int total)
  */
 void CraftInfoState::btnOkClick(Action *)
 {
-	_game->popState();
+	if (!_planning)
+		_game->popState();
+	else
+		_planning->launch();
 }
 
 /**
@@ -682,7 +686,7 @@ void CraftInfoState::btnCraftIconClick(Action *action)
  */
 void CraftInfoState::btnCrewClick(Action *)
 {
-	_game->pushState(new CraftSoldiersState(_base, _craftId));
+	_game->pushState(new CraftSoldiersState(_base, _craftId, _planning));
 }
 
 /**
@@ -700,8 +704,9 @@ void CraftInfoState::btnEquipClick(Action *)
  */
 void CraftInfoState::btnArmorClick(Action *)
 {
-	_game->pushState(new CraftArmorState(_base, _craftId));
+	_game->pushState(new CraftArmorState(_base, _craft, _planning));
 }
+
 
 /**
  * Goes to the Pilots Info screen.

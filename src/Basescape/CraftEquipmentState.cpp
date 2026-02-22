@@ -61,13 +61,53 @@ namespace OpenXcom
 
 /**
  * Initializes all the elements in the Craft Equipment screen.
- * @param game Pointer to the core game.
- * @param base Pointer to the base to get info from.
+ *
+ * MORE SLOW thant the alternative constructor
+ * 
+ * @param Craft Pointer to the craft
+ * @param restoreAfterMission if set to true, forces the state to restore the craft's equipement to premission state
  * @param craft ID of the selected craft.
  */
-CraftEquipmentState::CraftEquipmentState(Base *base, size_t craft) :
+
+CraftEquipmentState::CraftEquipmentState(Craft* craft, bool restoreAfterMission)
+{
+	size_t craftId;
+	Base* base; 
+	bool found = false;
+
+	// searching for the craftid and base
+	for (Base* base : *_game->getSavedGame()->getBases())
+	{
+		auto& crafts = *base->getCrafts();
+		for (craftId = 0; craftId < crafts.size(); ++craftId)
+		{
+			if (crafts[craftId] == craft)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (found)
+			break;
+	}
+	assert(found);
+
+	// now launch the usual constructor !
+	CraftEquipmentState(base, craftId, restoreAfterMission);
+}
+
+
+/**
+ * Initializes all the elements in the Craft Equipment screen.
+ * @param base Pointer to the base to get info from.
+ * @param craft the craft's id
+ * @param restoreAfterMission if set to true, forces the state to restore the craft's equipement to premission state
+ * @param craft ID of the selected craft.
+ */
+CraftEquipmentState::CraftEquipmentState(Base *base, size_t craft, bool restoreAfterMission) :
 	_lstScroll(0), _sel(0), _craft(craft), _base(base), _totalItems(0), _totalItemStorageSize(0.0), _ammoColor(0),
-	_reload(true), _returningFromGlobalTemplates(false), _returningFromInventory(false), _firstInit(true), _isNewBattle(false)
+	_reload(true), _returningFromGlobalTemplates(false), _returningFromInventory(false), _firstInit(true), _isNewBattle(false),
+	_restoreAfterMission(restoreAfterMission)
 {
 	Craft *c = _base->getCrafts()->at(_craft);
 	bool craftHasACrew = c->getNumTotalSoldiers() > 0;
@@ -289,6 +329,14 @@ void CraftEquipmentState::init()
 	_firstInit = false;
 
 	touchComponentsRefresh();
+
+	if (_restoreAfterMission)
+	{
+		loadGlobalLoadout(SavedGame::MAX_CRAFT_LOADOUT_TEMPLATES, false); // do the actual loading TODO : change the index !
+		_game->getSavedGame()->releaseMissionPlanning(); // release the mission planner
+		_restoreAfterMission = false; 
+		return _game->popState(); // yes it's void but we *must* exit init() after this or bad things may happen. Alternative : probably call initList() again...
+	}
 }
 
 /**

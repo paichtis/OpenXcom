@@ -218,9 +218,6 @@
     <ClCompile Include="Geoscape\LowFuelState.cpp">
       <Filter>Geoscape</Filter>
     </ClCompile>
-    <ClCompile Include="Geoscape\MonthlyReportState.cpp">
-      <Filter>Geoscape</Filter>
-    </ClCompile>
     <ClCompile Include="Geoscape\MultipleTargetsState.cpp">
       <Filter>Geoscape</Filter>
     </ClCompile>
@@ -1230,6 +1227,12 @@
       <Filter>Interface</Filter>
     </ClCompile>
     <ClCompile Include="Geoscape\NotificationText.cpp">
+      <Filter>Geoscape</Filter>
+    </ClCompile>
+    <ClCompile Include="Geoscape\MissionPlanning.cpp">
+      <Filter>Geoscape</Filter>
+    </ClCompile>
+    <ClCompile Include="Geoscape\MonthlyReportState.cpp">
       <Filter>Geoscape</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2721,6 +2724,9 @@
       <Filter>Interface</Filter>
     </ClInclude>
     <ClInclude Include="Geoscape\NotificationText.h">
+      <Filter>Geoscape</Filter>
+    </ClInclude>
+    <ClInclude Include="Geoscape\MissionPlanning.h">
       <Filter>Geoscape</Filter>
     </ClInclude>
   </ItemGroup>

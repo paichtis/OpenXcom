@@ -539,6 +539,8 @@
     <ClCompile Include="Geoscape\ConfirmNewBaseState.cpp" />
     <ClCompile Include="Geoscape\CraftPatrolState.cpp" />
     <ClCompile Include="Geoscape\DogfightState.cpp" />
+    <ClCompile Include="Geoscape\MissionPlanning.cpp" />
+    <ClCompile Include="Geoscape\MonthlyReportState.cpp" />
     <ClCompile Include="Geoscape\NewPossibleCraftState.cpp" />
     <ClCompile Include="Geoscape\NewPossibleFacilityState.cpp" />
     <ClCompile Include="Geoscape\NewPossiblePurchaseState.cpp" />
@@ -557,7 +559,6 @@
     <ClCompile Include="Geoscape\InterceptState.cpp" />
     <ClCompile Include="Geoscape\ItemsArrivingState.cpp" />
     <ClCompile Include="Geoscape\LowFuelState.cpp" />
-    <ClCompile Include="Geoscape\MonthlyReportState.cpp" />
     <ClCompile Include="Geoscape\MultipleTargetsState.cpp" />
     <ClCompile Include="Geoscape\SelectDestinationState.cpp" />
     <ClCompile Include="Geoscape\SelectMusicTrackState.cpp" />
@@ -1036,6 +1037,7 @@
     <ClInclude Include="Geoscape\CraftPatrolState.h" />
     <ClInclude Include="Geoscape\DogfightState.h" />
     <ClInclude Include="Geoscape\FundingState.h" />
+    <ClInclude Include="Geoscape\MissionPlanning.h" />
     <ClInclude Include="Geoscape\NewPossibleCraftState.h" />
     <ClInclude Include="Geoscape\NewPossibleFacilityState.h" />
     <ClInclude Include="Geoscape\NewPossiblePurchaseState.h" />

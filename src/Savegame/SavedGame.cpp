@@ -68,6 +68,7 @@
 #include "ResearchDiary.h"
 #include "../Mod/AlienRace.h"
 #include "RankCount.h"
+#include "../Geoscape/MissionPlanning.h"
 
 namespace OpenXcom
 {
@@ -123,9 +124,10 @@ SavedGame::SavedGame() :
 	_expenditures.push_back(0);
 	_lastselectedArmor="STR_NONE_UC";
 
-	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j) // <= instead of < because we have a hidden loadout for missions
+	_globalCraftLoadout.reserve(MAX_CRAFT_LOADOUT_TEMPLATES + 1); // +1 for one hidden template (mission planning) 
+	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
 	{
-		_globalCraftLoadout[j] = new ItemContainer();
+		_globalCraftLoadout.emplace_back(new ItemContainer());
 	}
 }
 
@@ -184,7 +186,7 @@ SavedGame::~SavedGame()
 			delete entry;
 		}
 	}
-	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	for (int j = 0; j < _globalCraftLoadout.size(); ++j)
 	{
 		delete _globalCraftLoadout[j];
 	}
@@ -195,6 +197,11 @@ SavedGame::~SavedGame()
 	for (auto* rde : _researchDiary)
 	{
 		delete rde;
+	}
+
+	if (!_missionPlannings.empty())
+	{
+		releaseMissionPlanning(-1);
 	}
 
 	delete _battleGame;
@@ -719,13 +726,35 @@ void SavedGame::loadTemplates(const YAML::YamlNodeReader& reader, const Mod* mod
 			_globalEquipmentLayoutArmor[j] = layoutArmor.readVal<std::string>();
 	}
 
-	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	int j = 0;
+	bool foundAtLeastOne;
+	do
 	{
-		if (const auto& loadout = reader[ryml::to_csubstr("globalCraftLoadout" + std::to_string(j))])
+		foundAtLeastOne = false;
+		std::string key = "globalCraftLoadout" + std::to_string(j);
+
+		if (const auto& loadout = reader[ryml::to_csubstr(key)])
+		{
+			if (j >= _globalCraftLoadout.size()) // extend vector if necessary
+			{
+				_globalCraftLoadout.emplace_back(new ItemContainer());
+			}
 			_globalCraftLoadout[j]->load(loadout, mod);
-		if (const auto& loadoutName = reader[ryml::to_csubstr("globalCraftLoadoutName" + std::to_string(j))])
-			_globalCraftLoadoutName[j] = loadoutName.readVal<std::string>();
-	}
+			foundAtLeastOne = true;
+		}
+		if (j < MAX_CRAFT_LOADOUT_TEMPLATES)
+			if( const auto& loadoutName = reader[ryml::to_csubstr("globalCraftLoadoutName" + std::to_string(j))])
+				_globalCraftLoadoutName[j] = loadoutName.readVal<std::string>();
+		j++; 
+	} while (foundAtLeastOne || j < MAX_CRAFT_LOADOUT_TEMPLATES); 
+
+	//for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	//{
+	//	if (const auto& loadout = reader[ryml::to_csubstr("globalCraftLoadout" + std::to_string(j))])
+	//		_globalCraftLoadout[j]->load(loadout, mod);
+	//	if (const auto& loadoutName = reader[ryml::to_csubstr("globalCraftLoadoutName" + std::to_string(j))])
+	//		
+	//}
 }
 
 void SavedGame::loadUfopediaRuleStatus(const YAML::YamlNodeReader& reader)
@@ -866,11 +895,11 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 		if (!_globalEquipmentLayoutArmor[j].empty())
 			writer.write(writer.saveString("globalEquipmentLayoutArmor" + std::to_string(j)), _globalEquipmentLayoutArmor[j]);
 	}
-	for (int j = 0; j <= MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	for (int j = 0; j < _globalCraftLoadout.size(); ++j)
 	{
 		if (!_globalCraftLoadout[j]->getContents()->empty())
 			_globalCraftLoadout[j]->save(writer[writer.saveString("globalCraftLoadout" + std::to_string(j))]);
-		if (!_globalCraftLoadoutName[j].empty())
+		if (j < MAX_CRAFT_LOADOUT_TEMPLATES && !_globalCraftLoadoutName[j].empty()) // hidden templates have no names
 			writer.write(writer.saveString("globalCraftLoadoutName" + std::to_string(j)), _globalCraftLoadoutName[j]);
 	}
 	if (Options::soldierDiaries)
@@ -3720,5 +3749,54 @@ void SavedGame::ScriptRegister(ScriptParserBase* parser)
 
 	sgg.addDebugDisplay<&debugDisplayScript>();
 }
+
+
+MissionPlanning* SavedGame::planMission(MissionPlanning* missionPlanning)
+{
+	bool push = _missionPlannings.empty();
+	int id = 0;
+	if (!push)
+	{
+		for (auto p : _missionPlannings)
+		{
+			if (!p)
+			{
+				push = false;
+				missionPlanning->setId(id);
+				p = missionPlanning;
+				return missionPlanning;
+			}
+			++id;
+		}
+	}
+	missionPlanning->setId(id);
+	_missionPlannings.push_back(missionPlanning);
+
+	return missionPlanning;
+}
+
+void SavedGame::releaseMissionPlanning(int id)
+{
+	if (_missionPlannings.empty())
+		return;
+	for (auto plannings : _missionPlannings)
+	{
+		if (plannings && (id == -1 || plannings->getId() == id))
+		{
+			delete plannings;
+			plannings = nullptr;
+			break;
+		}
+	}
+	if (id == -1)
+		_missionPlannings.clear();
+}
+
+MissionPlanning* SavedGame::getMissionPlanning(int id) const
+{
+	return _missionPlannings[id];
+}
+
+
 
 }

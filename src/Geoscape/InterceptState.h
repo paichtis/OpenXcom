@@ -31,6 +31,10 @@ class Base;
 class Globe;
 class Craft;
 class Target;
+//class AlienDeployment;
+//class RuleStartingCondition;
+class FilterToggleButton;
+class MissionPlanning;
 
 /**
  * Intercept window that lets the player launch
@@ -46,11 +50,24 @@ private:
 	Globe *_globe;
 	Base *_base;
 	Target *_target;
+//	AlienDeployment* _deploymentRule;
+	bool _prepareMission = false;
+//	RuleStartingCondition* _startingCondition = nullptr;
+	MissionPlanning* _planning;
 	std::vector<Craft*> _crafts;
 	std::vector<Craft*> _selCrafts;
+
+	FilterToggleButton* _btnFilterBtn;
+	Text* _txtFilterTooltip;
+
+	/// Checks whether a craft is eligible for the mission.
+//	bool isCraftEligible(Craft* craft, bool strict = false);
+	void nextStep(bool rClic);
+	bool goNextState(Craft* craft, bool rClic);
+
 public:
 	/// Creates the Intercept state.
-	InterceptState(Globe *globe, bool useCustomSound, Base *base = 0, Target *target = 0);
+  InterceptState(Globe* globe, bool useCustomSound, Base* base = 0, Target* target = 0, MissionPlanning* mission = nullptr);
 	/// Cleans up the Intercept state.
 	~InterceptState();
 	/// Handler for clicking the Cancel button.

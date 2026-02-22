@@ -33,6 +33,8 @@ class Base;
 class Soldier;
 class FilterToggleButton;
 struct SortFunctor;
+class MissionPlanning;
+class ErrorMessageState;
 
 /**
  * Select Squad screen that lets the player
@@ -55,21 +57,22 @@ private:
 	std::vector<Soldier *> _origSoldierOrder;
 	std::vector<SortFunctor *> _sortFunctors;
 	getStatFn_t _dynGetter;
-	/// initializes the display list based on the craft soldier's list and the position to display
-	void initList(size_t scrl);
 
-	
-#if 0
-	mutable size_t _lastOffset = 0; // calculation cache must stay mutable
-	// helper functions to get soldiers
-	Soldier* getSoldierAt(size_t index) const;
-	Soldier* getSelectedSoldier() const;
-	bool ignoreSoldier(const Soldier* soldier) const;
-#endif //0
+	MissionPlanning* _mission;
+	bool _cleaned = false;
+	bool _checkCommander = false;
+
+	/// initializes the display list based on the craft soldier's list and the position to display
+	void initList(size_t scrl, bool cleanUp = false);
+	void addCommanderList(const Craft* c);
+		
+	void deassignSoldier(Soldier* sol, int row = -1);
+	void assignSoldierToCraft(Soldier* soldier, Craft* c, int row = -1);
+	void pushErrorMessageState(std::string message);
 
  public:
 	/// Creates the Craft Soldiers state.
-	CraftSoldiersState(Base *base, size_t craft);
+   CraftSoldiersState(Base* base, size_t craft, MissionPlanning* mission= nullptr);
 	/// Cleans up the Craft Soldiers state.
 	~CraftSoldiersState();
 	/// Handler for changing the sort by combobox.

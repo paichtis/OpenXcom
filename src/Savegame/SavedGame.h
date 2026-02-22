@@ -66,6 +66,7 @@ class RuleSoldierTransformation;
 class AlienRace;
 struct MissionStatistics;
 struct BattleUnitKills;
+class MissionPlanning;
 
 /**
  * Enumerator containing all the possible game difficulties.
@@ -169,14 +170,16 @@ private:
 	std::string _globalEquipmentLayoutName[MAX_EQUIPMENT_LAYOUT_TEMPLATES];
 	std::string _globalEquipmentLayoutArmor[MAX_EQUIPMENT_LAYOUT_TEMPLATES];
 	std::vector<EquipmentLayoutItem*> _globalEquipmentLayout[MAX_EQUIPMENT_LAYOUT_TEMPLATES];
-	std::string _globalCraftLoadoutName[MAX_CRAFT_LOADOUT_TEMPLATES+1];
-	ItemContainer *_globalCraftLoadout[MAX_CRAFT_LOADOUT_TEMPLATES+1];
+	std::string _globalCraftLoadoutName[MAX_CRAFT_LOADOUT_TEMPLATES];
+	std::vector<ItemContainer *> _globalCraftLoadout;
 	std::vector<MissionStatistics*> _missionStatistics;
 	std::set<int> _ignoredUfos;
 	std::set<const RuleItem *> _autosales;
 	bool _disableSoldierEquipment;
 	bool _alienContainmentChecked;
 	ScriptValues<SavedGame> _scriptValues;
+
+	std::vector<MissionPlanning*> _missionPlannings;
 
 	static SaveInfo getSaveInfo(const std::string &file, Language *lang);
 public:
@@ -537,6 +540,12 @@ public:
 	std::vector<std::string>& getUserNotes() { return _userNotes; }
 	/// Gets the list of geoscape debug log entries.
 	std::vector<std::string>& getGeoscapeDebugLog() { return _geoscapeDebugLog; }
+
+	MissionPlanning* planMission(MissionPlanning* missionPlanning);
+	// release a mission planning or all of them (id = -1)
+	void releaseMissionPlanning(int id = -1);
+	MissionPlanning* getMissionPlanning(int id) const;
+	bool isPlanningMission() const { return !_missionPlannings.empty(); }
 };
 
 }

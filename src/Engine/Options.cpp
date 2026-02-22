@@ -400,6 +400,7 @@ void createOptionsOXCE()
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceBaseTouchButtons", &oxceBaseTouchButtons, false, "", "HIDDEN"));
 #endif
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceBaseManufactureAlwaysFullProductionDetails", &oxceBaseManufactureAlwaysFullProductionDetails, true, "", "HIDDEN"));
+	_info.push_back(OptionInfo(OPTION_OXCE, "oxcngShowBetaFeatures", &oxcngShowBetaFeatures, true, "", "HIDDEN"));
 
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceDisableAlienInventory", &oxceDisableAlienInventory, false, "", "HIDDEN"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceDisableHitLog", &oxceDisableHitLog, false, "", "HIDDEN"));

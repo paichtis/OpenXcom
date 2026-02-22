@@ -41,6 +41,7 @@
 #include "../Savegame/SavedBattleGame.h"
 #include "../Interface/ToggleTextButton.h"
 #include "FilterToggleButton.h"
+#include "../Geoscape/MissionPlanning.h"
 #include <algorithm>
 #include <functional>
 #include <climits>
@@ -48,38 +49,19 @@
 namespace OpenXcom
 {
 
-#if 0
-Soldier* CraftSoldiersState::getSoldierAt(size_t index) const
-{
-	if (!_btnMinus->getPressed()) // no filtering --> normal get
-		return _base->getSoldiers()->at(index);
-	size_t realIndex = index;
-	_lastOffset = 0;
-	for (size_t i = 0; i < _base->getSoldiers()->size(); ++i)
-	{
-		if (_base->getSoldiers()->at(i)->isWounded())
-			++realIndex, ++_lastOffset;
-		else if (i == realIndex)
-			return _base->getSoldiers()->at(i);
-	}
-	assert(false);
-	return nullptr;
-}
-
-Soldier* CraftSoldiersState::getSelectedSoldier() const
-{
-	return getSoldierAt(_lstSoldiers->getSelectedRow());
-}
-
-bool CraftSoldiersState::ignoreSoldier(const Soldier* soldier) const
-{
-	return _btnMinus->getPressed() && soldier->isWounded();
-}
-#endif //0
-
 bool woundedFilter(const Soldier* s)
 {
 	return s->isWounded();
+}
+
+bool outFilter(const Soldier* s)
+{
+	return s->isOutOfBase();
+}
+
+bool notCommanderFilter(const Soldier* s)
+{
+	return woundedFilter(s) && outFilter(s) && !s->isCommander();
 }
 
 /**
@@ -88,8 +70,8 @@ bool woundedFilter(const Soldier* s)
  * @param base Pointer to the base to get info from.
  * @param craft ID of the selected craft.
  */
-CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
-		:  _base(base), _craft(craft), _otherCraftColor(0), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL)
+CraftSoldiersState::CraftSoldiersState(Base* base, size_t craft, MissionPlanning* mission)
+	: _base(base), _craft(craft), _otherCraftColor(0), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL), _mission(mission)
 {
 	bool hidePreview = _game->getSavedGame()->getMonthsPassed() == -1;
 	Craft *c = _base->getCrafts()->at(_craft);
@@ -228,8 +210,17 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	_lstSoldiers->onMousePress((ActionHandler)&CraftSoldiersState::lstSoldiersMousePress);
 
 	_btnMinus->onMouseClick((ActionHandler)&CraftSoldiersState::btnMinusClick);
-	_btnMinus->setFilter(woundedFilter);
 	_btnMinus->setListAndBase(_lstSoldiers, _base);
+
+	_btnMinus->setFilter(woundedFilter); // ignores wounded soldiers
+	_btnMinus->orFilter(outFilter);		 // and those out of base	
+	if (_mission != nullptr)
+	{
+		_btnMinus->orFilter([this](const Soldier* sol)
+							{ return !_mission->isSoldierPermitted(sol); });
+		_btnMinus->enforcePressed();
+		_checkCommander = _mission->requiresCommander();
+	}
 }
 
 /**
@@ -334,13 +325,50 @@ void CraftSoldiersState::cbxSortByChange(Action *)
 	initList(originalScrollPos);
 }
 
+
+
+void CraftSoldiersState::addCommanderList(const Craft* c)
+{
+	_btnMinus->setFilter(
+		[this, c](const Soldier* sol)
+		{
+		return !(sol->getCraft() == c) && notCommanderFilter(sol); }
+	);
+
+	initList(0);
+}
+
 /**
  * Returns to the previous screen.
  * @param action Pointer to an action.
  */
 void CraftSoldiersState::btnOkClick(Action *)
 {
-	_game->popState();
+	if (_mission && _mission->requiresCommander())
+	{
+		const Craft* c = _base->getCrafts()->at(_craft);
+		if (!c->isCommanderOnboard())
+		{
+			if (_checkCommander)
+			{
+				_checkCommander = false;
+				return addCommanderList(c);
+			}
+			else // failure to add a commander
+			{
+				_game->popState();
+				_mission->confirmAbort("craftSoldiers");
+				return pushErrorMessageState("STR_STARTING_CONDITION_COMMANDER");
+			}
+		}
+	}
+	else if (_mission)
+	{
+		_mission->goNextState();
+		
+	}
+	else
+		_game->popState();
 }
 
 /**
@@ -350,7 +378,8 @@ void CraftSoldiersState::btnOkClick(Action *)
 
 void CraftSoldiersState::btnMinusClick(Action*)
 {
-	initList(0); // refreshes the list. Sadly no logical way to keep scroll position so we lose it
+	if (!_mission)
+		initList(0); // refreshes the list. Sadly no logical way to keep scroll position so we lose it
 }
 
 /**
@@ -384,8 +413,10 @@ void CraftSoldiersState::btnPreviewClick(Action *)
 
 /**
  * Shows the soldiers in a list at specified offset/scroll.
- */
-void CraftSoldiersState::initList(size_t scrl)
+ * @param cleanUp : When set to true, removes ineligible soldiers from the craft.
+*/
+
+void CraftSoldiersState::initList(size_t scrl, bool cleanUp)
 {
 	int row = 0;
 	_lstSoldiers->clearList();
@@ -401,10 +432,15 @@ void CraftSoldiersState::initList(size_t scrl)
 
 	Craft *c = _base->getCrafts()->at(_craft);
 	BaseSumDailyRecovery recovery = _base->getSumRecoveryPerDay();
-	for (const auto* soldier : *_base->getSoldiers())
+	for (auto* soldier : *_base->getSoldiers())
 	{
 		if (_btnMinus->ignore(soldier))
-			continue;	// filter out wounded soldiers if the button is pressed
+		{
+			if (cleanUp && _mission && _mission->isSoldierInCraft(soldier))
+				deassignSoldier(soldier);
+			continue; // Filter out unavailable or forbidden soldiers.
+		}
+
 		if (_dynGetter != NULL)
 		{
 			// call corresponding getter
@@ -440,6 +476,7 @@ void CraftSoldiersState::initList(size_t scrl)
 
 	_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(c->getSpaceAvailable()));
 	_txtUsed->setText(tr("STR_SPACE_USED").arg(c->getSpaceUsed()));
+	_cleaned |= cleanUp;
 }
 
 /**
@@ -449,7 +486,8 @@ void CraftSoldiersState::init()
 {
 	State::init();
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
-	initList(_lstSoldiers->getScroll());
+	bool cleaningNeeded = (_mission != nullptr) && !_cleaned;
+	initList(_lstSoldiers->getScroll(), cleaningNeeded);
 
 	// update the label to indicate presence of a saved craft deployment
 	Craft* c = _base->getCrafts()->at(_craft);
@@ -578,6 +616,11 @@ void CraftSoldiersState::moveSoldierDown(Action *action, unsigned int row, bool 
 	initList(_lstSoldiers->getScroll());
 }
 
+void CraftSoldiersState::pushErrorMessageState(std::string message)
+{
+	_game->pushState(new ErrorMessageState(tr(message), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+}
+
 /**
  * Shows the selected soldier's info.
  * @param action Pointer to an action.
@@ -593,12 +636,10 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 	if (_game->isLeftClick(action, true))
 	{
 		Craft *c = _base->getCrafts()->at(_craft);
-		Soldier* s = _btnMinus->getSelectedSoldier();  //_base->getSoldiers()->at(_lstSoldiers->getSelectedRow());
+		Soldier* s = _btnMinus->getSelectedSoldier();
 		if (s->getCraft() == c)
 		{
-			s->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
-			_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
-			_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
+			deassignSoldier(s, row);
 		}
 		else if (s->getCraft() && s->getCraft()->getStatus() == "STR_OUT")
 		{
@@ -610,28 +651,25 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 			CraftPlacementErrors err = c->validateAddingSoldier(space, s);
 			if (err == CPE_None)
 			{
-				s->setCraftAndMoveEquipment(c, _base, _game->getSavedGame()->getMonthsPassed() == -1, true);
-				_lstSoldiers->setCellText(row, 2, c->getName(_game->getLanguage()));
-				_lstSoldiers->setRowColor(row, _lstSoldiers->getSecondaryColor());
-
+				assignSoldierToCraft(s, c, row);
 				// update the label to indicate absence of a saved craft deployment
 				_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
 			}
 			else if (err == CPE_SoldierGroupNotAllowed)
 			{
-				_game->pushState(new ErrorMessageState(tr("STR_SOLDIER_GROUP_NOT_ALLOWED"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+				pushErrorMessageState("STR_SOLDIER_GROUP_NOT_ALLOWED");
 			}
 			else if (err == CPE_SoldierGroupNotSame)
 			{
-				_game->pushState(new ErrorMessageState(tr("STR_SOLDIER_GROUP_NOT_SAME"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+				pushErrorMessageState("STR_SOLDIER_GROUP_NOT_SAME");
 			}
 			else if (err == CPE_ArmorGroupNotAllowed)
 			{
-				_game->pushState(new ErrorMessageState(tr("STR_ARMOR_GROUP_NOT_ALLOWED"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+				pushErrorMessageState("STR_ARMOR_GROUP_NOT_ALLOWED");
 			}
 			else if (space > 0)
 			{
-				_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+				pushErrorMessageState("STR_NOT_ENOUGH_CRAFT_SPACE");
 			}
 		}
 
@@ -677,6 +715,28 @@ void CraftSoldiersState::lstSoldiersMousePress(Action *action)
 	}
 }
 
+
+void CraftSoldiersState::assignSoldierToCraft(Soldier* soldier, Craft* c, int row)
+{
+	soldier->setCraftAndMoveEquipment(c, _base, _game->getSavedGame()->getMonthsPassed() == -1, true);
+	if (row >= 0 && !_btnMinus->ignore(soldier))
+	{
+		_lstSoldiers->setCellText(row, 2, c->getName(_game->getLanguage()));
+		_lstSoldiers->setRowColor(row, _lstSoldiers->getSecondaryColor());
+	}
+
+}
+
+void CraftSoldiersState::deassignSoldier(Soldier* soldier, int row)
+{
+	soldier->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
+	if (row >= 0 && !_btnMinus->ignore(soldier))
+	{
+		_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
+		_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
+	}
+}
+
 /**
  * De-assign all soldiers from all craft located in the base (i.e. not out on a mission).
  * @param action Pointer to an action.
@@ -686,14 +746,9 @@ void CraftSoldiersState::btnDeassignAllSoldiersClick(Action *action)
 	int row = 0;
 	for (auto* soldier : *_base->getSoldiers())
 	{
-		if (soldier->getCraft() && soldier->getCraft()->getStatus() != "STR_OUT")
+		if (!soldier->isOutOfBase())
 		{
-			soldier->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
-			if (!_btnMinus->ignore(soldier))
-			{
-				_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
-				_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
-			}
+			deassignSoldier(soldier, row);
 		}
 		if (!_btnMinus->ignore(soldier))
 			row++;
@@ -716,12 +771,7 @@ void CraftSoldiersState::btnDeassignCraftSoldiersClick(Action *action)
 	{
 		if (soldier->getCraft() == c)
 		{
-			soldier->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
-			if (!_btnMinus->ignore(soldier))
-			{
-				_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
-				_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
-			}
+			deassignSoldier(soldier, row);
 		}
 		if (!_btnMinus->ignore(soldier))
 			row++;

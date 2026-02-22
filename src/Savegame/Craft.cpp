@@ -260,6 +260,7 @@ void Craft::load(const YAML::YamlNodeReader& node, const ScriptGlobal *shared, c
 	reader.tryRead("customSoldierDeployment", _customSoldierDeployment);
 	reader.tryRead("customVehicleDeployment", _customVehicleDeployment);
 	reader.tryRead("skinIndex", _skinIndex);
+	reader.tryRead("backupAssignedSoldierIds", _backupAssignedSoldierIds);
 	if (_skinIndex > _rules->getMaxSkinIndex())
 	{
 		_skinIndex = 0;
@@ -384,6 +385,10 @@ void Craft::save(YAML::YamlNodeWriter writer, const ScriptGlobal *shared) const
 	if (_skinIndex != 0)
 		writer.write("skinIndex", _skinIndex);
 
+	if (!_backupAssignedSoldierIds.empty())
+	{
+		writer.write("backupAssignedSoldierIds", _backupAssignedSoldierIds);
+	}
 	_scriptValues.save(writer, shared);
 }
 
@@ -679,6 +684,56 @@ void Craft::calculateTotalSoldierEquipment()
 		}
 	}
 }
+
+
+void Craft::backupAssignedSoldiers()
+{
+	if (!_backupAssignedSoldierIds.empty()) // already backed up
+		return;
+
+	for (auto* soldier : *_base->getSoldiers())
+	{
+		if (soldier->getCraft() == this)
+			_backupAssignedSoldierIds.push_back(soldier->getId());
+	}
+}
+
+void Craft::restoreAssignedSoldiersFromBackup()
+{
+	if (_backupAssignedSoldierIds.empty())
+		return;
+
+	for (auto* soldier : *_base->getSoldiers())
+	{
+		int id = soldier->getId();
+		bool found = false;
+		for (int saved : _backupAssignedSoldierIds)
+		{
+			if (saved == id)
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if (!found && (soldier->getCraft() == this))
+		{
+			soldier->setCraftAndMoveEquipment(0, _base, false);
+		}
+		else if (found && !soldier->isOutOfBase() && !soldier->isWounded())
+		{
+			soldier->setCraftAndMoveEquipment(this, _base, false); // no need to check if already assigned there as this function does the check
+		}
+	}
+	_backupAssignedSoldierIds.clear();
+}
+
+
+bool Craft::hasAssignedSoldiersBackup() const
+{
+	return !_backupAssignedSoldierIds.empty();
+}
+
 
 /**
  * Gets the total storage size of all items in the craft. Including vehicles+ammo and craft weapons+ammo.
@@ -1001,7 +1056,8 @@ int Craft::getFuelLimit() const
 /**
  * Returns the minimum required fuel for the
  * craft to go to a base.
- * @param base Pointer to target base.
+ * @param target Pointer to target Target (note : it calculates the cost to go there,
+ *  not to return --> you need twice that amount to go and come back for instance).
  * @return Fuel amount.
  */
 int Craft::getFuelLimit(Target *target) const
@@ -1113,6 +1169,7 @@ bool Craft::think()
 		_lowFuel = false;
 		_mission = false;
 		_takeoff = 0;
+		restoreAssignedSoldiersFromBackup();
 		return true;
 	}
 	return false;
@@ -1497,7 +1554,7 @@ bool Craft::isCommanderOnboard() const
 {
 	for (const auto* soldier : *_base->getSoldiers())
 	{
-		if (soldier->getCraft() == this && soldier->getRank() == RANK_COMMANDER)
+		if (soldier->getCraft() == this && soldier->isCommander())
 		{
 			return true;
 		}

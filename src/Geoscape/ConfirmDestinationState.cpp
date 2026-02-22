@@ -46,6 +46,7 @@
 #include "../Engine/Options.h"
 #include "../Engine/Sound.h"
 #include "../Ufopaedia/Ufopaedia.h"
+#include "../Geoscape/MissionPlanning.h"
 
 namespace OpenXcom
 {
@@ -56,7 +57,7 @@ namespace OpenXcom
  * @param crafts Vector for the crafts part of a wing to retarget.
  * @param target Pointer to the selected target (NULL if it's just a point on the globe).
  */
-ConfirmDestinationState::ConfirmDestinationState(std::vector<Craft*> crafts, Target *target) : _crafts(std::move(crafts)), _target(target)
+ConfirmDestinationState::ConfirmDestinationState(std::vector<Craft*> crafts, Target* target, MissionPlanning* planning) : _crafts(std::move(crafts)), _target(target), _planning(planning)
 {
 	Waypoint *w = dynamic_cast<Waypoint*>(_target);
 	_screen = false;
@@ -494,6 +495,10 @@ void ConfirmDestinationState::btnCancelClick(Action *)
 		delete w;
 	}
 	_game->popState();
+	if (_planning)
+	{
+		_planning->confirmAbort("intercept");
+	}
 }
 
 }

@@ -33,6 +33,7 @@ class TextList;
 class ComboBox;
 class Timer;
 class Base;
+class Craft;
 
 /**
  * Equipment screen that lets the player
@@ -62,13 +63,16 @@ private:
 	bool _returningFromInventory;
 	bool _firstInit;
 	bool _isNewBattle;
+	bool _restoreAfterMission;
 	/// Updates quantities of item.
 	void updateQuantity();
 	/// initializes the displayed list
 	void initList();
 public:
+
 	/// Creates the Craft Equipment state.
-	CraftEquipmentState(Base *base, size_t craft);
+	CraftEquipmentState(Craft* craft, bool restoreAfterMission = false);
+	CraftEquipmentState(Base *base, size_t craft, bool restoreAfterMission = false);
 	/// Cleans up the Craft Equipment state.
 	~CraftEquipmentState();
 	/// Handler for changing the filter by combobox.

@@ -29,6 +29,7 @@ class TextEdit;
 class Target;
 class Globe;
 class AlienDeployment;
+class MissionPlanning;
 
 /**
  * Generic window used to display all the
@@ -40,11 +41,15 @@ private:
 	Target *_target;
 	Globe *_globe;
 
-	TextButton *_btnIntercept, *_btnOk, *_btnInfo;
+	TextButton *_btnIntercept, *_btnOk, *_btnInfo, *_btnPrepareMission;
 	Window *_window;
 	TextEdit *_edtTitle;
 	Text *_txtTargetted, *_txtFollowers, *_txtPenalty;
 	AlienDeployment *_deploymentRule;
+	MissionPlanning *_missionPlanning;
+
+	bool fillDeploymentInfo();
+
 public:
 	/// Creates the Target Info state.
 	TargetInfoState(Target *target, Globe *globe);
@@ -52,6 +57,8 @@ public:
 	~TargetInfoState();
 	/// Handler for clicking the Intercept button.
 	void btnInterceptClick(Action *action);
+	/// Handler for clicking the Prepare Mission button.
+	void btnPrepareMissionClick(Action* action);
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Info button.
