@@ -172,6 +172,7 @@ OPT bool oxceReplaceNotesLink;
 
 OPT bool oxceInventorySplitScrollButton;
 OPT bool oxceInventoryDropItemOverPaperdoll;
+OPT bool oxceInventoryUnloadFixedWeapons;
 
 OPT int oxceMaxEquipmentLayoutTemplates;
 
