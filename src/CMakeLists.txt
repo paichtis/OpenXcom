@@ -7,6 +7,7 @@ set ( root_src
 set ( basescape_src
   Basescape/BaseInfoState.cpp
   Basescape/BasescapeState.cpp
+  Basescape/BaseSwitcher.cpp
   Basescape/BaseView.cpp
   Basescape/BuildFacilitiesState.cpp
   Basescape/CraftArmorState.cpp
@@ -20,6 +21,7 @@ set ( basescape_src
   Basescape/CraftsState.cpp
   Basescape/CraftWeaponsState.cpp
   Basescape/DismantleFacilityState.cpp
+  Basescape/FilterToggleButton.cpp
   Basescape/GlobalAlienContainmentState.cpp
   Basescape/GlobalManufactureState.cpp
   Basescape/GlobalResearchDiaryState.cpp
@@ -209,6 +211,7 @@ set ( geoscape_src
   Geoscape/ItemsArrivingState.cpp
   Geoscape/LowFuelState.cpp
   Geoscape/MissionDetectedState.cpp
+  Geoscape/MissionPlanning.cpp
   Geoscape/MonthlyReportState.cpp
   Geoscape/MultipleTargetsState.cpp
   Geoscape/NewPossibleCraftState.cpp
@@ -234,6 +237,7 @@ set ( interface_src
   Interface/ArrowButton.cpp
   Interface/Bar.cpp
   Interface/BattlescapeButton.cpp
+  Interface/ConfirmationDialogState.cpp
   Interface/ComboBox.cpp
   Interface/Cursor.cpp
   Interface/FpsCounter.cpp
