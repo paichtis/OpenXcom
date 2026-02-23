@@ -57,28 +57,28 @@ jobs:
       - name: Download and copy SDL DLLs
         shell: powershell
         run: |
-    # Créer le dossier temporaire
-    New-Item -ItemType Directory -Path "dlls" -Force
+          # Créer le dossier temporaire
+          New-Item -ItemType Directory -Path "dlls" -Force
 
-    # Télécharger les archives SDL 1.2
-    Invoke-WebRequest -Uri "https://www.libsdl.org/release/SDL-1.2.15-win32.zip" -OutFile "dlls\SDL.zip"
-    Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.12-win32.zip" -OutFile "dlls\SDL_mixer.zip"
-    Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.12-win32.zip" -OutFile "dlls\SDL_image.zip"
+          # Télécharger les archives SDL 1.2
+          Invoke-WebRequest -Uri "https://www.libsdl.org/release/SDL-1.2.15-win32.zip" -OutFile "dlls\SDL.zip"
+          Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.12-win32.zip" -OutFile "dlls\SDL_mixer.zip"
+          Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.12-win32.zip" -OutFile "dlls\SDL_image.zip"
 
-    # Extraire les archives
-    Expand-Archive -Path "dlls\SDL.zip" -DestinationPath "dlls\SDL"
-    Expand-Archive -Path "dlls\SDL_mixer.zip" -DestinationPath "dlls\SDL_mixer"
-    Expand-Archive -Path "dlls\SDL_image.zip" -DestinationPath "dlls\SDL_image"
+          # Extraire les archives
+          Expand-Archive -Path "dlls\SDL.zip" -DestinationPath "dlls\SDL"
+          Expand-Archive -Path "dlls\SDL_mixer.zip" -DestinationPath "dlls\SDL_mixer"
+          Expand-Archive -Path "dlls\SDL_image.zip" -DestinationPath "dlls\SDL_image"
 
-    # Copier les DLL vers le dossier de sortie
-    Copy-Item "dlls\SDL\SDL.dll" -Destination "bin\Win32\Release\" -Force
-    Copy-Item "dlls\SDL_mixer\SDL_mixer.dll" -Destination "bin\Win32\Release\" -Force
-    Copy-Item "dlls\SDL_image\SDL_image.dll" -Destination "bin\Win32\Release\" -Force
+          # Copier les DLL vers le dossier de sortie
+          Copy-Item "dlls\SDL\SDL.dll" -Destination "bin\Win32\Release\" -Force
+          Copy-Item "dlls\SDL_mixer\SDL_mixer.dll" -Destination "bin\Win32\Release\" -Force
+          Copy-Item "dlls\SDL_image\SDL_image.dll" -Destination "bin\Win32\Release\" -Force
 
-    # Gestion de SDL_gfx : pas de binaire officiel. 
-    # Si nécessaire, vous pouvez le compiler ou le récupérer ailleurs.
-    # Si le projet n'en a pas besoin, ignorez cette ligne.
-    # Copy-Item "chemin\vers\SDL_gfx.dll" -Destination "bin\Win32\Release\" -Force
+        # Gestion de SDL_gfx : pas de binaire officiel. 
+        # Si nécessaire, vous pouvez le compiler ou le récupérer ailleurs.
+        # Si le projet n'en a pas besoin, ignorez cette ligne.
+        # Copy-Item "chemin\vers\SDL_gfx.dll" -Destination "bin\Win32\Release\" -Force
     
       - name: Create nightly ZIP (x86 only)
         shell: powershell
