@@ -16,15 +16,15 @@ jobs:
       - name: Setup environment
         shell: bash
         run: |
-          echo "DATEFILE=\`git log -1 --date=format:\"%Y_%m_%d_%H%M\" --format=\"%ad\"\`" >> $GITHUB_ENV
-          echo "DATEVERSION=\`git log -1 --date=format:\"%Y-%m-%d %H:%M\" --format=\"%ad\"\`" >> $GITHUB_ENV
+          echo "DATEFILE=`git log -1 --date=format:\"%Y_%m_%d_%H%M\" --format=\"%ad\"`" >> $GITHUB_ENV
+          echo "DATEVERSION=`git log -1 --date=format:\"%Y-%m-%d %H:%M\" --format=\"%ad\"`" >> $GITHUB_ENV
 
       - name: Setup version info
         shell: bash
         run: |
-          sed -i "s/GAME_VERSION_GIT \"[^"]*\"/GAME_VERSION_GIT \" git ${{ env.DATEVERSION }}\"/" install/win/version.nsh
-          sed -i "s/GAME_DATE_GIT \"[^"]*\"/GAME_DATE_GIT \"${{ env.DATEFILE }}\"/" install/win/version.nsh
-          sed -i "s/OPENXCOM_VERSION_GIT \"[^"]*\"/OPENXCOM_VERSION_GIT \" git ${{ env.DATEVERSION }}\"/" src/version.h
+          sed -i "s/GAME_VERSION_GIT \"[^\"]*\"/GAME_VERSION_GIT \" git ${{ env.DATEVERSION }}\"/" install/win/version.nsh
+          sed -i "s/GAME_DATE_GIT \"[^\"]*\"/GAME_DATE_GIT \"${{ env.DATEFILE }}\"/" install/win/version.nsh
+          sed -i "s/OPENXCOM_VERSION_GIT \"[^\"]*\"/OPENXCOM_VERSION_GIT \" git ${{ env.DATEVERSION }}\"/" src/version.h
           echo "FILENAME=oxce_git_${{ env.DATEFILE }}" >> $GITHUB_ENV
 
       - name: Install XP Toolset
@@ -33,7 +33,7 @@ jobs:
           Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
           $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
           $WorkLoads = '--add Microsoft.VisualStudio.Component.WinXP'
-          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`$InstallPath`", $WorkLoads, '--quiet', '--norestart', '--nocache')
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"", $WorkLoads, '--quiet', '--norestart', '--nocache')
           $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
           if ($process.ExitCode -eq 0) {
               Write-Host "components have been successfully added"
@@ -57,29 +57,29 @@ jobs:
       - name: Download and copy SDL DLLs
         shell: powershell
         run: |
-          # Créer le dossier temporaire
-          New-Item -ItemType Directory -Path "dlls" -Force
+    # Créer le dossier temporaire
+    New-Item -ItemType Directory -Path "dlls" -Force
 
-          # Télécharger les archives SDL 1.2
-          Invoke-WebRequest -Uri "https://www.libsdl.org/release/SDL-1.2.15-win32.zip" -OutFile "dlls\SDL.zip"
-          Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.12-win32.zip" -OutFile "dlls\SDL_mixer.zip"
-          Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.12-win32.zip" -OutFile "dlls\SDL_image.zip"
+    # Télécharger les archives SDL 1.2
+    Invoke-WebRequest -Uri "https://www.libsdl.org/release/SDL-1.2.15-win32.zip" -OutFile "dlls\SDL.zip"
+    Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.12-win32.zip" -OutFile "dlls\SDL_mixer.zip"
+    Invoke-WebRequest -Uri "https://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.12-win32.zip" -OutFile "dlls\SDL_image.zip"
 
-          # Extraire les archives
-          Expand-Archive -Path "dlls\SDL.zip" -DestinationPath "dlls\SDL"
-          Expand-Archive -Path "dlls\SDL_mixer.zip" -DestinationPath "dlls\SDL_mixer"
-          Expand-Archive -Path "dlls\SDL_image.zip" -DestinationPath "dlls\SDL_image"
+    # Extraire les archives
+    Expand-Archive -Path "dlls\SDL.zip" -DestinationPath "dlls\SDL"
+    Expand-Archive -Path "dlls\SDL_mixer.zip" -DestinationPath "dlls\SDL_mixer"
+    Expand-Archive -Path "dlls\SDL_image.zip" -DestinationPath "dlls\SDL_image"
 
-          # Copier les DLL vers le dossier de sortie
-          Copy-Item "dlls\SDL\SDL.dll" -Destination "bin\Win32\Release\" -Force
-          Copy-Item "dlls\SDL_mixer\SDL_mixer.dll" -Destination "bin\Win32\Release\" -Force
-          Copy-Item "dlls\SDL_image\SDL_image.dll" -Destination "bin\Win32\Release\" -Force
+    # Copier les DLL vers le dossier de sortie
+    Copy-Item "dlls\SDL\SDL.dll" -Destination "bin\Win32\Release\" -Force
+    Copy-Item "dlls\SDL_mixer\SDL_mixer.dll" -Destination "bin\Win32\Release\" -Force
+    Copy-Item "dlls\SDL_image\SDL_image.dll" -Destination "bin\Win32\Release\" -Force
 
-          # Gestion de SDL_gfx : pas de binaire officiel. 
-          # Si nécessaire, vous pouvez le compiler ou le récupérer ailleurs.
-          # Si le projet n'en a pas besoin, ignorez cette ligne.
-          # Copy-Item "chemin\vers\SDL_gfx.dll" -Destination "bin\Win32\Release\" -Force
-          
+    # Gestion de SDL_gfx : pas de binaire officiel. 
+    # Si nécessaire, vous pouvez le compiler ou le récupérer ailleurs.
+    # Si le projet n'en a pas besoin, ignorez cette ligne.
+    # Copy-Item "chemin\vers\SDL_gfx.dll" -Destination "bin\Win32\Release\" -Force
+    
       - name: Create nightly ZIP (x86 only)
         shell: powershell
         run: |
@@ -108,13 +108,13 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "DATEFILE=\`git log -1 --date=format:\"%Y_%m_%d_%H%M\" --format=\"%ad\"\`" >> $GITHUB_ENV
-          echo "DATEVERSION=\`git log -1 --date=format:\"%Y-%m-%d %H:%M\" --format=\"%ad\"\`" >> $GITHUB_ENV
-          echo "CMAKE_BUILD_PARALLEL_LEVEL=\`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2\`" >> $GITHUB_ENV
+          echo "DATEFILE=`git log -1 --date=format:\"%Y_%m_%d_%H%M\" --format=\"%ad\"`" >> $GITHUB_ENV
+          echo "DATEVERSION=`git log -1 --date=format:\"%Y-%m-%d %H:%M\" --format=\"%ad\"`" >> $GITHUB_ENV
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2`" >> $GITHUB_ENV
 
       - name: Setup version info
         run: |
-          sed -i "s/OPENXCOM_VERSION_GIT \"[^"]*\"/OPENXCOM_VERSION_GIT \" git ${{ env.DATEVERSION }}\"/" src/version.h
+          sed -i "s/OPENXCOM_VERSION_GIT \"[^\"]*\"/OPENXCOM_VERSION_GIT \" git ${{ env.DATEVERSION }}\"/" src/version.h
           echo "FILENAME=oxce_git_${{ env.DATEFILE }}" >> $GITHUB_ENV
 
       - name: Install packages
@@ -168,13 +168,13 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "DATEFILE=\`git log -1 --date=format:\"%Y_%m_%d_%H%M\" --format=\"%ad\"\`" >> $GITHUB_ENV
-          echo "DATEVERSION=\`git log -1 --date=format:\"%Y-%m-%d %H:%M\" --format=\"%ad\"\`" >> $GITHUB_ENV
-          echo "CMAKE_BUILD_PARALLEL_LEVEL=\`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2\`" >> $GITHUB_ENV
+          echo "DATEFILE=`git log -1 --date=format:\"%Y_%m_%d_%H%M\" --format=\"%ad\"`" >> $GITHUB_ENV
+          echo "DATEVERSION=`git log -1 --date=format:\"%Y-%m-%d %H:%M\" --format=\"%ad\"`" >> $GITHUB_ENV
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2`" >> $GITHUB_ENV
 
       - name: Setup version info
         run: |
-          sed -i '' "s|OPENXCOM_VERSION_GIT \"[^"]*\"|OPENXCOM_VERSION_GIT \" git ${{ env.DATEVERSION }}\"|" src/version.h
+          sed -i '' "s|OPENXCOM_VERSION_GIT \"[^\"]*\"|OPENXCOM_VERSION_GIT \" git ${{ env.DATEVERSION }}\"|" src/version.h
           echo "FILENAME=oxce_git_${{ env.DATEFILE }}" >> $GITHUB_ENV
 
       - name: Install libraries (macOS)
