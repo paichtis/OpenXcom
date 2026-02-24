@@ -34,6 +34,9 @@
 
 namespace OpenXcom {
 
+//const Uint8 arrowColor = 29;
+//const Uint8 baseNameColor = 13;
+
 bool BaseSwitcher::_ignoreBase(Base* base) const
 {
 	if (base == _bsbase) // current base is never ignored !
@@ -167,15 +170,17 @@ void BaseSwitcher::addNavigationButtons(State* parent, InteractiveSurface *surfa
 	{
 		_nextButton = new TextButton(10, 8, 310, 0);
 		_nextText = new Text(100, 8, 210, 0);
-		_parent->add(_nextButton);
+		_parent->add(_nextButton, "button", _interface);
 		_parent->add(_nextText);
 
 		_nextButton->setText("->");
 		_nextButton->setAlign(ALIGN_RIGHT);
+//		_nextButton->setColor(ammoColor);
 		_nextText->setSmall();
 		_nextText->setAlign(ALIGN_RIGHT);
 		_nextText->setColor(ammoColor); // using ammo color for lack of better
 		_nextButton->onMouseClick(getNextButtonHandler());
+		_nextText->onMouseClick(getNextButtonHandler());
 		if (!update)
 			_surface->onKeyboardPress(getNextButtonHandler(), SDLK_PAGEDOWN);
 	}
@@ -197,16 +202,18 @@ void BaseSwitcher::addNavigationButtons(State* parent, InteractiveSurface *surfa
 	{
 		_prevText = new Text(100, 8, 10, 0);
 		_prevButton = new TextButton(10, 8, 0, 0);
-		_parent->add(_prevButton);
+		_parent->add(_prevButton, "button", _interface);
 		_parent->add(_prevText);
 
 		_prevButton->setText("<-");
 		_prevButton->setAlign(ALIGN_LEFT);
+//		_prevButton->setColor(arrowColor);
 		_prevText->setSmall();
 		_prevText->setAlign(ALIGN_LEFT);
-		_prevText->setColor(ammoColor); // using ammo color for lack of better
+		_prevText->setColor(ammoColor);
 
 		_prevButton->onMouseClick(getPrevButtonHandler());
+		_prevText->onMouseClick(getPrevButtonHandler());
 		if (!update)
 			_surface->onKeyboardPress(getPrevButtonHandler(), SDLK_PAGEUP);
 	}
@@ -221,9 +228,8 @@ void BaseSwitcher::updateNavigationButtons(State* parent, InteractiveSurface *su
 }
 
 /// Creates a new BaseSwitcher linked to a parent state and a base.
-BaseSwitcher::BaseSwitcher(Base* base)
+BaseSwitcher::BaseSwitcher(Base* base, std::string interface) : _interface(interface), _bsbase(base)
 {
-	_bsbase = base;
 	_baseIndex = getBaseIndex(base);
 }
 

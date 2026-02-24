@@ -43,6 +43,7 @@ class BaseSwitcher
 
 	State* _parent = nullptr;
 	InteractiveSurface *_surface = nullptr;
+	std::string _interface;
 
   private:
 //	State* _parent = nullptr;
@@ -78,7 +79,7 @@ class BaseSwitcher
 
 public:
 	/// Creates a new BaseSwitcher linked to a parent state and a base.
-	BaseSwitcher(Base* base);	
+	BaseSwitcher(Base* base, std::string interface);	
 	virtual ~BaseSwitcher() = default;
 	/// Moves to the next/previous base.
 	void nextBase(int direction);

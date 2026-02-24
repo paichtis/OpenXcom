@@ -123,7 +123,7 @@ void PurchaseState::addFirstCategories()
  */
 PurchaseState::PurchaseState(Base *base, CannotReequipState *parent)
 	: _base(base), _parent(parent), _sel(0), _total(0), _pQty(0), _cQty(0), _iQty(0.0), _ammoColor(0),
-	  BaseSwitcher(base)
+	  BaseSwitcher(base, "buyMenu")
 {
 	_autoBuyDone = false;
 	_isReequiping = (parent != nullptr);

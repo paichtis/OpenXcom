@@ -99,7 +99,7 @@ bool AllocatePsiTrainingState::ignoreBase(Base* base) const
  * @param base Pointer to the base to handle.
  */
 AllocatePsiTrainingState::AllocatePsiTrainingState(Base* base, bool allowSwitching) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()),
-																					  _doNotReset(false), _allowSwitching(allowSwitching), BaseSwitcher(base)
+																					  _doNotReset(false), _allowSwitching(allowSwitching), BaseSwitcher(base, "allocatePsi")
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);

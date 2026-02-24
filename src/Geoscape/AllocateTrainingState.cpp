@@ -100,7 +100,7 @@ void AllocateTrainingState::doPush(Base* base)
  * @param base Pointer to the base to handle.
  */
 AllocateTrainingState::AllocateTrainingState(Base* base, bool allowSwitching) : _sel(0), _base(base), _origSoldierOrder(*_base->getSoldiers()),
-																				_doNotReset(false), BaseSwitcher(base), _allowSwitching(allowSwitching)
+																				_doNotReset(false), BaseSwitcher(base, "allocateMartial"), _allowSwitching(allowSwitching)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);

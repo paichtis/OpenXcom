@@ -153,8 +153,6 @@ void SellState::addNavigationButtons(InteractiveSurface *surface) {
 	if (_debriefingState || getValidBasesCount() <= 1)
 		return;
 
-
-	//TextButton(int width, int height, int x = 0, int y = 0);
 	_nextButton = new TextButton(10, 8, 310, 0);
 	_nextText = new Text(100, 8, 210, 0);
 	add(_nextButton, "button", "sellMenu");
@@ -167,6 +165,7 @@ void SellState::addNavigationButtons(InteractiveSurface *surface) {
 	_nextText->setColor(_ammoColor); // using ammo color for lack of better
 
 	_nextButton->onMouseClick((ActionHandler)&SellState::btnNextBaseClick);
+	_nextText->onMouseClick((ActionHandler)&SellState::btnNextBaseClick);
 	surface->onKeyboardPress((ActionHandler)&SellState::btnNextBaseClick, SDLK_PAGEDOWN);
 
 	if (getValidBasesCount() <= 2) // 2 bases only --> no need for previous button
@@ -185,6 +184,7 @@ void SellState::addNavigationButtons(InteractiveSurface *surface) {
 	_prevText->setColor(_ammoColor); // using ammo color for lack of better
 
 	_prevButton->onMouseClick((ActionHandler)&SellState::btnPrevBaseClick);
+	_prevText->onMouseClick((ActionHandler)&SellState::btnPrevBaseClick);
 	surface->onKeyboardPress((ActionHandler)&SellState::btnPrevBaseClick, SDLK_PAGEUP);
 }
 
