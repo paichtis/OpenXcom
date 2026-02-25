@@ -32,12 +32,12 @@ BEGIN
         BLOCK "000004b0"
         BEGIN
             VALUE "CompanyName", "OpenXcom Developers"
-            VALUE "FileDescription", "OpenXcom Extended"
+            VALUE "FileDescription", "OpenXcom New Generation"
             VALUE "FileVersion", OPENXCOM_VERSION_LONG
             VALUE "InternalName", "OpenXcomEx.exe"
-            VALUE "LegalCopyright", "Copyright 2010-2019 OpenXcom Developers"
+            VALUE "LegalCopyright", "Copyright 2010-2026 OpenXcom Developers"
             VALUE "OriginalFilename", "OpenXcomEx.exe"
-            VALUE "ProductName", "OpenXcom Extended"
+            VALUE "ProductName", "OpenXcom New Generation"
             VALUE "ProductVersion", OPENXCOM_VERSION_LONG
         END
     END
