@@ -33,6 +33,7 @@
 #include "../Savegame/MovingTarget.h"
 #include "InterceptState.h"
 #include "MissionPlanning.h"
+#include "../Interface/ConfirmationDialogState.h"
 
 namespace OpenXcom
 {
@@ -170,9 +171,16 @@ void TargetInfoState::btnInterceptClick(Action*)
  */
 void TargetInfoState::btnPrepareMissionClick(Action* action)
 {
-	_game->popState();
-	MissionPlanning* planning = MissionPlanning::create(_deploymentRule, _target); // register the mission planner and thus start the planing flow
-	_game->pushState(new InterceptState(_globe, false, 0, _target, planning));
+	ConfirmationDialogState* confirm = new ConfirmationDialogState("Start mission preparation? This is a BETA feature.\nBACKUP YOUR SAVE !", "sellMenu",
+		[this](void*) {
+			_game->popState();
+			MissionPlanning* planning = MissionPlanning::create(_deploymentRule, _target); // register the mission planner and thus start the planing flow
+			_game->pushState(new InterceptState(_globe, false, 0, _target, planning));
+			return false;
+		return true; },
+		[](void*)
+		   { return false; }		);
+	_game->pushState(confirm);
 }
 
 /**

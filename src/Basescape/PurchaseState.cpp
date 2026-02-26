@@ -908,7 +908,7 @@ bool PurchaseState::concludeTransaction()
 void PurchaseState::btnOkClick(Action*)
 {
 	if (concludeTransaction())
-		_game->popState();
+		popStateAndRebase();
 }
 
 
@@ -918,7 +918,7 @@ void PurchaseState::btnOkClick(Action*)
  */
 void PurchaseState::btnCancelClick(Action *)
 {
-	_game->popState();
+	popStateAndRebase();
 }
 
 /**
